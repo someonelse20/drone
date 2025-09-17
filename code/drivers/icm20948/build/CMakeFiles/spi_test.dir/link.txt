@@ -1,1 +1,0 @@
-/usr/bin/c++ -rdynamic CMakeFiles/spi_test.dir/spi_test.cpp.o -o spi_test  -lwiringPi -lstdc++ 
