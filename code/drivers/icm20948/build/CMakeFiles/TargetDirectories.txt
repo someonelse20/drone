@@ -1,0 +1,5 @@
+/home/drone/drone/code/drivers/icm20948/build/CMakeFiles/spi.dir
+/home/drone/drone/code/drivers/icm20948/build/CMakeFiles/registers.dir
+/home/drone/drone/code/drivers/icm20948/build/CMakeFiles/spi_test.dir
+/home/drone/drone/code/drivers/icm20948/build/CMakeFiles/edit_cache.dir
+/home/drone/drone/code/drivers/icm20948/build/CMakeFiles/rebuild_cache.dir

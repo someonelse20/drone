@@ -1,0 +1,1 @@
+/usr/bin/c++ -rdynamic CMakeFiles/lsm9ds1_test.dir/calibrate/get_data.cpp.o -o lsm9ds1_test  -lwiringPi -lstdc++ -llsm9ds1 -lstdc++ -llsm9ds1 

@@ -1,0 +1,3 @@
+/home/drone/drone/code/drivers/lsm9ds1/build/CMakeFiles/lsm9ds1_test.dir
+/home/drone/drone/code/drivers/lsm9ds1/build/CMakeFiles/edit_cache.dir
+/home/drone/drone/code/drivers/lsm9ds1/build/CMakeFiles/rebuild_cache.dir

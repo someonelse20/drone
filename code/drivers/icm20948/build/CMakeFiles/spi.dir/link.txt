@@ -1,0 +1,2 @@
+/usr/bin/ar qc libspi.a 
+/usr/bin/ranlib libspi.a

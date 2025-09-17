@@ -1,0 +1,2 @@
+/usr/bin/ar qc libfusion.a 
+/usr/bin/ranlib libfusion.a

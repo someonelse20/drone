@@ -1,0 +1,10 @@
+{
+	"InstallScripts" : 
+	[
+		"/home/william/drone/code/flight-controller/build/cmake_install.cmake",
+		"/home/william/drone/code/flight-controller/build/Fusion/cmake_install.cmake",
+		"/home/william/drone/code/flight-controller/build/Examples/Advanced/cmake_install.cmake",
+		"/home/william/drone/code/flight-controller/build/Examples/Simple/cmake_install.cmake"
+	],
+	"Parallel" : false
+}
