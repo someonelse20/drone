@@ -1,1 +1,0 @@
-/usr/bin/c++ -rdynamic CMakeFiles/flight_controller.dir/simple_test.cpp.o -o flight_controller  -llsm9ds1 -lstdc++ 

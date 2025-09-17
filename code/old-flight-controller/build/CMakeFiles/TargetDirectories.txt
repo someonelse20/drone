@@ -1,7 +1,0 @@
-/home/drone/drone/code/flight-controller/build/CMakeFiles/flight_controller.dir
-/home/drone/drone/code/flight-controller/build/CMakeFiles/driver.dir
-/home/drone/drone/code/flight-controller/build/CMakeFiles/edit_cache.dir
-/home/drone/drone/code/flight-controller/build/CMakeFiles/rebuild_cache.dir
-/home/drone/drone/code/flight-controller/build/Fusion/Fusion/CMakeFiles/Fusion.dir
-/home/drone/drone/code/flight-controller/build/Fusion/Fusion/CMakeFiles/edit_cache.dir
-/home/drone/drone/code/flight-controller/build/Fusion/Fusion/CMakeFiles/rebuild_cache.dir

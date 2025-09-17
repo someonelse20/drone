@@ -1,2 +1,0 @@
-/usr/bin/ar qc libdriver.a 
-/usr/bin/ranlib libdriver.a
