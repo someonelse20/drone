@@ -1,70 +1,21 @@
-#include <iostream>
-#include <unistd.h>
-#include <vector>
-#include <cmath>
-#include <ctime>
-
-#include "./Fusion/Fusion/Fusion.h"
-#include "./driver.h"
-
-using namespace std;
+#include "../../Fusion/Fusion.h"
+#include <stdbool.h>
+#include <stdio.h>
+#include <time.h>
 
 #define SAMPLE_RATE (100) // replace this with actual sample rate
-#define GRAVITY (9.80665)
-
-// angle variables
-vector<float> raw_gyro_value;
-vector<float> raw_accel_value;
-vector<float> raw_mag_value;
 
 int main() {
-
-    // Calibrate sensors offset
-    vector<float> gyro_offset_calculation = {0.0f, 0.0f, 0.0f};
-    vector<float> accel_offset_calculation = {0.0f, 0.0f, 0.0f};
-
-    int count = 0;
-
-    double timestamp = clock() / CLOCKS_PER_SEC;
-    while (timestamp + 5 >= (double)clock() / CLOCKS_PER_SEC) {
-        // add code to get raw sensor values here
-        gyro_offset_calculation = {
-            gyro_offset_calculation[0] + raw_gyro_value[0],
-            gyro_offset_calculation[1] + raw_gyro_value[1],
-            gyro_offset_calculation[2] + raw_gyro_value[2]
-        };
-
-        accel_offset_calculation = {
-            accel_offset_calculation[0] + raw_accel_value[0],
-            accel_offset_calculation[1] + raw_accel_value[1],
-            accel_offset_calculation[2] + raw_accel_value[2]
-        };
-
-        count ++;
-    }
-
-    gyro_offset_calculation = {
-        gyro_offset_calculation[0] / count,
-        gyro_offset_calculation[1] / count,
-        gyro_offset_calculation[2] / count
-    };
-
-    accel_offset_calculation = {
-        accel_offset_calculation[0] / count,
-        accel_offset_calculation[1] / count,
-        accel_offset_calculation[2] / count
-    };
 
     // Define calibration (replace with actual calibration data if available)
     const FusionMatrix gyroscopeMisalignment = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     const FusionVector gyroscopeSensitivity = {1.0f, 1.0f, 1.0f};
-    const FusionVector gyroscopeOffset = {gyro_offset_calculation[0], gyro_offset_calculation[1], gyro_offset_calculation[2]};
+    const FusionVector gyroscopeOffset = {0.0f, 0.0f, 0.0f};
     const FusionMatrix accelerometerMisalignment = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     const FusionVector accelerometerSensitivity = {1.0f, 1.0f, 1.0f};
-    const FusionVector accelerometerOffset = {accel_offset_calculation[0], accel_offset_calculation[1], accel_offset_calculation[2]};
+    const FusionVector accelerometerOffset = {0.0f, 0.0f, 0.0f};
     const FusionMatrix softIronMatrix = {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f};
     const FusionVector hardIronOffset = {0.0f, 0.0f, 0.0f};
-
 
     // Initialise algorithms
     FusionOffset offset;

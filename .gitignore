@@ -1,1 +1,9 @@
-build
+.idea
+cmake-build-debug
+
+__pycache__/
+build/
+dist/
+imufusion.egg-info/
+old-flight-controller
+code/drivers/other_icm20948
