@@ -1,6 +1,0 @@
-class ahrs {
-private:
-
-public:
-
-};
