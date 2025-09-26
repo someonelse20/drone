@@ -1,3 +1,4 @@
+#include <vector>
 #define X = 0
 #define Y = 1
 #define Z = 2
@@ -26,6 +27,14 @@ struct outputs {
 	output_acceleration acceleration;
 };
 
+struct calibrate {
+	double rotation_matrix[3][3];
+	double sensitivity[3];
+	double bias[3];
+	double soft_iorn[3][3];
+	double hard_iorn[3];
+};
+
 struct settings_struct{
 	double gain_normal=0.5;
 	double gain_init=10;
@@ -36,6 +45,10 @@ struct settings_struct{
 	
 	double accel_rejection=0.1; // Acceleration in g that the accelerometer should be considered unreliable.
 	double accel_rejection_t=100; // Time in ms that acceleration > accel_rejection after which the accelerometer will be rejected.
+	
+	calibrate gyro_calibrate;
+	calibrate accel_calibrate;
+	calibrate mag_calibrate;
 };
 
 void init(); // Initialises the algorithm.
