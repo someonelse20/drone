@@ -125,6 +125,9 @@ outputs update(vector<double> accel, vector<double> gyro, vector<double> mag, do
 		gain = settings.gain_init + (pow(settings.gain_init, -current_time()) / settings.gain_init) * (settings.gain_init - settings.gain_normal);
 	else
 		gain = settings.gain_normal;
+
+	// calibration calcualtion
+	vector<double> gyro_calibrated = subtract_vector(gyro, settings.gyro_calibrate.bias);
 	
 	// sensor conditioning
 	vector<double> gyro_conditioned = gyro_bias_compensation(gyro);

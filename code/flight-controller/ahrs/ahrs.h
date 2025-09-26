@@ -29,10 +29,10 @@ struct outputs {
 
 struct calibrate {
 	double rotation_matrix[3][3];
-	double sensitivity[3];
-	double bias[3];
 	double soft_iorn[3][3];
-	double hard_iorn[3];
+	std::vector<double> sensitivity;
+	std::vector<double> bias;
+	std::vector<double> hard_iorn;
 };
 
 struct settings_struct{
