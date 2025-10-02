@@ -198,3 +198,16 @@ outputs update(vector<double> accel, vector<double> gyro, vector<double> mag, do
 	return return_outputs;
 }
 
+void set_settings(settings_struct new_settings) {
+	settings.gain_normal = new_settings.gain_normal;
+	settings.gain_init = new_settings.gain_init;
+	settings.init_time = new_settings.init_time;
+	settings.min_mag_distortion = new_settings.min_mag_distortion;
+	settings.max_mag_distoriton = new_settings.max_mag_distoriton;
+	settings.accel_rejection = new_settings.accel_rejection;
+	settings.accel_rejection_t = new_settings.accel_rejection_t;
+	settings.gyro_calibrate = new_settings.gyro_calibrate;
+	settings.accel_calibrate = new_settings.accel_calibrate;
+	settings.mag_calibrate = new_settings.mag_calibrate;
+}
+
