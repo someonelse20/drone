@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.6)
 
-project(flight_controller)
+project(flight_controller CXX)
 
-add_library(ahrs ./ahrs/ahrs.cpp ./ahrs/ahrs.h)
+add_library(ahrs ahrs.h ahrs.cpp)
 
-add_executable(test test.cpp)
+add_executable(flight_controller main.cpp)
 
-target_link_libraries(test ahrs)
+target_link_libraries(flight_controller ahrs)
 

@@ -211,3 +211,7 @@ void set_settings(settings_struct new_settings) {
 	settings.mag_calibrate = new_settings.mag_calibrate;
 }
 
+int foo() {
+	return 1;
+}
+

@@ -51,8 +51,6 @@ struct settings_struct{
 	calibrate mag_calibrate;
 };
 
-void init(); // Initialises the algorithm.
-
 int foo();
 
 void set_settings(settings_struct new_settings);
