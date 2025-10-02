@@ -6,3 +6,5 @@ add_library(ahrs ./ahrs/ahrs.cpp ./ahrs/ahrs.h)
 
 add_executable(test test.cpp)
 
+target_link_libraries(test ahrs)
+

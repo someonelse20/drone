@@ -53,6 +53,8 @@ struct settings_struct{
 
 void init(); // Initialises the algorithm.
 
+int foo();
+
 void set_settings(settings_struct new_settings);
 
 outputs update(double gyro[3], double accel[3], double mag[3], double sample_period);

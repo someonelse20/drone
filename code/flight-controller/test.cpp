@@ -6,7 +6,7 @@ using namespace std;
 settings_struct settings;
 
 int main() {
-	init();
+	foo();
 	cout << "hello" << endl;
 }
 
