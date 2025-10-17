@@ -1,12 +1,12 @@
-G04 #@! TF.GenerationSoftware,KiCad,Pcbnew,9.0.4*
-G04 #@! TF.CreationDate,2025-09-01T18:14:39-04:00*
+G04 #@! TF.GenerationSoftware,KiCad,Pcbnew,9.0.5*
+G04 #@! TF.CreationDate,2025-10-10T13:46:02-04:00*
 G04 #@! TF.ProjectId,power_supply_hat,706f7765-725f-4737-9570-706c795f6861,rev?*
 G04 #@! TF.SameCoordinates,Original*
 G04 #@! TF.FileFunction,Soldermask,Top*
 G04 #@! TF.FilePolarity,Negative*
 %FSLAX46Y46*%
 G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
-G04 Created by KiCad (PCBNEW 9.0.4) date 2025-09-01 18:14:39*
+G04 Created by KiCad (PCBNEW 9.0.5) date 2025-10-10 13:46:02*
 %MOMM*%
 %LPD*%
 G01*
@@ -150,8 +150,8 @@ X130025000Y-92950000D03*
 D11*
 X149500000Y-60000000D03*
 D31*
-X134887500Y-66575000D03*
-X138012500Y-66575000D03*
+X137500000Y-62500000D03*
+X140625000Y-62500000D03*
 D16*
 X111500000Y-51937500D03*
 X111500000Y-55062500D03*
