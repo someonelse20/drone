@@ -113,8 +113,8 @@ vector<double> accel_rejection(vector<double> accel){
 	}
 }
 
-outputs update(vector<double> accel, vector<double> gyro, vector<double> mag, double dt) {
-	outputs return_outputs;
+output_struct update(vector<double> accel, vector<double> gyro, vector<double> mag, double dt) {
+	output_struct return_outputs;
 
 	// set timestamp
 	if (start_timestamp == 0)

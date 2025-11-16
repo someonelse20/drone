@@ -6,5 +6,6 @@ add_library(ahrs ahrs.h ahrs.cpp)
 
 add_executable(flight_controller main.cpp)
 
-target_link_libraries(flight_controller ahrs)
+#target_link_libraries(flight_controller ahrs)
+target_link_libraries(flight_controller PRIVATE lsm9ds1 ahrs PUBLIC stdc++)
 

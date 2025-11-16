@@ -7,24 +7,28 @@
 #define Y_Q = 2
 #define Z_Q = 3
 
-struct output_quaternion {
+struct quaternion_struct {
 	double w, x, y, z;
 };
-struct output_vector {
+
+struct vector_struct {
 	double x, y, z;
 };
-struct output_orientation {
-	output_quaternion quaterion;
-	output_vector euler;
+
+struct orientation_struct {
+	quaternion_struct quaterion;
+	vector_struct euler;
 };
-struct output_acceleration {
-	output_vector zero;
-	output_vector global;
+
+struct acceleration_struct {
+	vector_struct zero;
+	vector_struct global;
 };
-struct outputs {
-	output_orientation orientation; // Orientation of the IMU relative to the earth.
-	output_orientation orientation_earth_frame; // Orientation of the earth relative to the IMU, the default output of the algorithm.
-	output_acceleration acceleration;
+
+struct output_struct {
+	orientation_struct orientation; // Orientation of the IMU relative to the earth.
+	orientation_struct orientation_earth_frame; // Orientation of the earth relative to the IMU, the default output of the algorithm.
+	acceleration_struct acceleration;
 };
 
 struct calibrate {
@@ -51,9 +55,7 @@ struct settings_struct{
 	calibrate mag_calibrate;
 };
 
-int foo();
-
 void set_settings(settings_struct new_settings);
 
-outputs update(double gyro[3], double accel[3], double mag[3], double sample_period);
+output_struct update(double gyro[3], double accel[3], double mag[3], double sample_period);
 
