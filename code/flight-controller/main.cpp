@@ -3,6 +3,7 @@
 #include <string>
 #include <unistd.h>
 #include <vector>
+#include <chrono>
 #include "ahrs.h"
 #include <LSM9DS1_Types.h>
 #include "LSM9DS1.h"
@@ -17,7 +18,13 @@ struct imu_data {
 
 LSM9DS1 imu(IMU_MODE_I2C, 0x6b, 0x1e);
 
-double dt = 10; // Deltatime in miliseconds.
+double dt = 27; // Deltatime in miliseconds.
+
+// Gets time in miliseconds since epoch.
+double get_timestamp() {
+  using namespace std::chrono;
+  return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+}
 
 // Initialize LSM9DS1.
 void imu_init(int accel_scale = 4, int gyro_scale = 500, int mag_scale = 0) { // Set default settings for LSM9DS1. mag_scale is not currently used.
@@ -87,10 +94,8 @@ void test_imu(bool loop=false) { // If loop = true then this function will loop 
 }
 
 // Updates orientation using ahrs algoritm. See ahrs.h and ahrs.cpp.
-void update_orientation(ahrs ahrs_alg, imu_data data) {
-	ahrs_alg.update(data.gyro, data.accel, data.mag, dt);
-
-	return;
+output_struct update_orientation(ahrs ahrs_alg, imu_data data) {
+	return ahrs_alg.update(data.gyro, data.accel, data.mag, dt);
 }
 
 int main() {
@@ -100,7 +105,14 @@ int main() {
 	ahrs ahrs_alg;
 
 	while (true) {
-		update_orientation(ahrs_alg, read_imu());
+		double timestamp = get_timestamp();
+
+		read_imu();
+
+		output_struct orientation = update_orientation(ahrs_alg, read_imu());
+
+		cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
+		// cout << get_timestamp() - timestamp << endl;
 	}
 }
 

@@ -112,7 +112,7 @@ vector<double> ahrs::accel_rejection(vector<double> accel){
 	}
 }
 
-ahrs::output_struct ahrs::update(vector<double> gyro, vector<double> accel, vector<double> mag, double dt) {
+output_struct ahrs::update(vector<double> gyro, vector<double> accel, vector<double> mag, double dt) {
 	output_struct return_outputs;
 
 	// set timestamp

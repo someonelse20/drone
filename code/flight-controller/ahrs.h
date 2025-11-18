@@ -8,6 +8,7 @@
 #define X_Q = 1
 #define Y_Q = 2
 #define Z_Q = 3
+*/
 
 struct quaternion_struct {
 	double w, x, y, z;
@@ -44,7 +45,7 @@ struct calibrate {
 struct settings_struct{
 	double gain_normal=0.5;
 	double gain_init=10;
-	double init_time=3;
+	double init_time=300; // Time the algorithm is initializing in miliseconds.
 	
 	double min_mag_distortion=0.22;
 	double max_mag_distoriton=0.67;
@@ -56,7 +57,6 @@ struct settings_struct{
 	calibrate accel_calibrate;
 	calibrate mag_calibrate;
 }; 
-*/
 
 class ahrs {
 	private:
@@ -103,6 +103,7 @@ class ahrs {
 
 	// ---------------------------------------- STRUCTS ----------------------------------------
 
+	/*
 	struct quaternion_struct {
 		double w, x, y, z;
 	};
@@ -149,7 +150,7 @@ class ahrs {
 		calibrate accel_calibrate;
 		calibrate mag_calibrate;
 	};
-	
+	*/
 
 	settings_struct settings;
 
