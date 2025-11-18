@@ -1,20 +1,23 @@
-#include <LSM9DS1_Types.h>
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include "ahrs.h"
-#include "LSM9DS1.h"
 #include <unistd.h>
+#include <vector>
+#include "ahrs.h"
+#include <LSM9DS1_Types.h>
+#include "LSM9DS1.h"
 
 using namespace std;
 
 struct imu_data {
-	double gyro[3];
-	double accel[3];
-	double mag[3];
+	vector<double> gyro = {0, 0, 0};
+	vector<double> accel = {0, 0, 0};
+	vector<double> mag = {0, 0, 0};
 };
 
 LSM9DS1 imu(IMU_MODE_I2C, 0x6b, 0x1e);
+
+double dt = 10; // Deltatime in miliseconds.
 
 // Initialize LSM9DS1.
 void imu_init(int accel_scale = 4, int gyro_scale = 500, int mag_scale = 0) { // Set default settings for LSM9DS1. mag_scale is not currently used.
@@ -84,14 +87,20 @@ void test_imu(bool loop=false) { // If loop = true then this function will loop 
 }
 
 // Updates orientation using ahrs algoritm. See ahrs.h and ahrs.cpp.
-void update_orientation() {
-	cout << "Hello world!" << endl;
+void update_orientation(ahrs ahrs_alg, imu_data data) {
+	ahrs_alg.update(data.gyro, data.accel, data.mag, dt);
+
 	return;
 }
 
 int main() {
-	update_orientation();
-
 	imu_init();
+
+	// Set ahrs settings.
+	ahrs ahrs_alg;
+
+	while (true) {
+		update_orientation(ahrs_alg, read_imu());
+	}
 }
 

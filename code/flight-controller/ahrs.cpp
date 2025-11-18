@@ -5,9 +5,7 @@
 
 using namespace std;
 
-settings_struct settings;
-
-vector<double> orientation = {1, 0, 0, 0}; // Orientation as a quaterion. Starts at no rotation.
+/*vector<double> orientation = {1, 0, 0, 0}; // Orientation as a quaterion. Starts at no rotation.
 double gain;
 vector<double> error(3), a_error(3), m_error(3);
 
@@ -15,8 +13,9 @@ double start_timestamp = 0;
 
 double accel_t;
 double accel_t_timestamp = 0;
+*/
 
-double norm(vector<double> v) { // calculates the norm of an array
+double ahrs::norm(vector<double> v) { // calculates the norm of an array
 	double return_value;
 	for (int i = 0; i < v.size(); i++) {
 		return_value += pow(v[i], 2);
@@ -24,17 +23,17 @@ double norm(vector<double> v) { // calculates the norm of an array
 	return sqrt(return_value);
 }
 
-vector<double> quaternion_to_euler(vector<double> q) {
+vector<double> ahrs::quaternion_to_euler(vector<double> q) {
 	return vector<double> {atan2(2 * (q[2] * q[3] - q[0] * q[1]), 2 * pow(q[0], 2) - 1 + 2 * pow(q[3], 2)),
 	                       -asin(2 * (q[1] * q[3] + q[0] * q[2])),
 	                       atan2(2 * (q[1] * q[2] - q[0] * q[3]), 2 * pow(q[0], 2) - 1 + 2 * pow(q[1], 2))};
 }
 
-vector<double> quaterion_conjugate(vector<double> q) {
+vector<double> ahrs::quaternion_conjugate(vector<double> q) {
 	return vector<double> {q[0], -q[1], -q[2], -q[3]};
 }
 
-vector<double> quaternion_product(vector<double> qa, vector<double> qb) {
+vector<double> ahrs::quaternion_product(vector<double> qa, vector<double> qb) {
 	return vector<double> {qa[0] * qb[0] - qa[1] * qb[1] - qa[2] * qb[2] - qa[3] * qb[3],
 	                       qa[0] * qb[1] + qa[1] * qb[0] + qa[2] * qb[3] - qa[3] * qb[2],
 	                       qa[0] * qb[2] - qa[1] * qb[3] + qa[2] * qb[0] + qa[3] * qb[1],
@@ -45,11 +44,11 @@ vector<double> quaternion_product(vector<double> qa, vector<double> qb) {
 	return vector<double> {q[0] * scalar, q[1] * scalar, q[2] * scalar, q[3] * scalar};
 }*/
 
-vector<double> cross_product(vector<double> va, vector<double> vb) {
+vector<double> ahrs::cross_product(vector<double> va, vector<double> vb) {
     return vector<double> {va[1] * vb[2] - va[2] * vb[1], va[2] * vb[0] - va[0] * vb[2], va[0] * vb[1] - va[1] * vb[0]};
 }
 
-vector<double> scale_vector(vector<double> v, double scalar) {
+vector<double> ahrs::scale_vector(vector<double> v, double scalar) {
 	vector<double> return_vector(v.size());
 	for (int i = 0; i < v.size(); i++) {
 		return_vector[i] = v[i] * scalar;
@@ -57,7 +56,7 @@ vector<double> scale_vector(vector<double> v, double scalar) {
 	return return_vector;
 }
 
-vector<double> add_vector(vector<double> va, vector<double> vb) {
+vector<double> ahrs::add_vector(vector<double> va, vector<double> vb) {
 	vector<double> return_vector(va.size());
 	for (int i = 0; i < va.size(); ++i) {
 	    return_vector[i] = va[i] + vb[i];
@@ -65,7 +64,7 @@ vector<double> add_vector(vector<double> va, vector<double> vb) {
 	return return_vector;
 }
 
-vector<double> subtract_vector(vector<double> va, vector<double> vb) {
+vector<double> ahrs::subtract_vector(vector<double> va, vector<double> vb) {
 	vector<double> return_vector(va.size());
 	for (int i = 0; i < va.size(); ++i) {
 	    return_vector[i] = va[i] - vb[i];
@@ -73,20 +72,20 @@ vector<double> subtract_vector(vector<double> va, vector<double> vb) {
 	return return_vector;
 }
 
-double get_timestamp() {
+double ahrs::get_timestamp() {
   using namespace std::chrono;
   return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
 }
 
-double current_time() {
+double ahrs::current_time() {
 	return get_timestamp() - start_timestamp;
 }
 
-vector<double> gyro_bias_compensation(vector<double> gyro) { // Possibly replace with low pass filter.
+vector<double> ahrs::gyro_bias_compensation(vector<double> gyro) { // Possibly replace with low pass filter.
 	return gyro;
 }
 
-vector<double> mag_rejection(vector<double> mag) {
+vector<double> ahrs::mag_rejection(vector<double> mag) {
 	norm(mag);
 	if (settings.min_mag_distortion < norm(mag) && norm(mag) < settings.max_mag_distoriton) {
 		 return mag;
@@ -96,7 +95,7 @@ vector<double> mag_rejection(vector<double> mag) {
 	}
 }
 
-vector<double> accel_rejection(vector<double> accel){ 
+vector<double> ahrs::accel_rejection(vector<double> accel){ 
 	// calculate the amount of time that the accelerometer measurment is unreliable
 	if (accel_t_timestamp == 0)
 		accel_t_timestamp = get_timestamp();
@@ -113,7 +112,7 @@ vector<double> accel_rejection(vector<double> accel){
 	}
 }
 
-output_struct update(vector<double> accel, vector<double> gyro, vector<double> mag, double dt) {
+ahrs::output_struct ahrs::update(vector<double> gyro, vector<double> accel, vector<double> mag, double dt) {
 	output_struct return_outputs;
 
 	// set timestamp
@@ -159,7 +158,7 @@ output_struct update(vector<double> accel, vector<double> gyro, vector<double> m
 	vector<double> acceleration_zero = subtract_vector(accel, vector<double> {2 * orientation[1] * orientation[3] - 2 * orientation[0] * orientation[2],
 	                                                                          2 * orientation[2] * orientation[3] + 2 * orientation[0] * orientation[1],
 	                                                                          2 * pow(orientation[0], 2) - 1 + 2 * pow(orientation[3], 2)});
-	vector<double> orientation_global = quaterion_conjugate(orientation);
+	vector<double> orientation_global = quaternion_conjugate(orientation);
 	vector<double> acceleration_global_quaternion = quaternion_product(quaternion_product(orientation, vector<double> {0, acceleration_zero[0], acceleration_zero[1], acceleration_zero[2]}),
 	                                                                   orientation_global);
 	vector<double> acceleration_global = vector<double> {acceleration_global_quaternion[1], acceleration_global_quaternion[2], acceleration_global_quaternion[3]};
@@ -198,20 +197,9 @@ output_struct update(vector<double> accel, vector<double> gyro, vector<double> m
 	return return_outputs;
 }
 
-void set_settings(settings_struct new_settings) {
-	settings.gain_normal = new_settings.gain_normal;
-	settings.gain_init = new_settings.gain_init;
-	settings.init_time = new_settings.init_time;
-	settings.min_mag_distortion = new_settings.min_mag_distortion;
-	settings.max_mag_distoriton = new_settings.max_mag_distoriton;
-	settings.accel_rejection = new_settings.accel_rejection;
-	settings.accel_rejection_t = new_settings.accel_rejection_t;
-	settings.gyro_calibrate = new_settings.gyro_calibrate;
-	settings.accel_calibrate = new_settings.accel_calibrate;
-	settings.mag_calibrate = new_settings.mag_calibrate;
+/*
+ahrs::ahrs(settings_struct settings_to_set) {
+	settings = settings_to_set;
 }
-
-int foo() {
-	return 1;
-}
+*/
 
