@@ -104,6 +104,12 @@ int main() {
 	// Set ahrs settings.
 	ahrs ahrs_alg;
 
+	ahrs_alg.settings.gyro_calibrate.bias = {0.75393149, 1.16563878, -8.15698371};
+	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.82820539, 0.86249338, 0.85730546};
+	ahrs_alg.settings.gyro_calibrate.rotation_matrix = {{347, 8, 13},
+                                                        {4, 355, 1},
+                                                        {0, 10, 347}};
+
 	while (true) {
 		double timestamp = get_timestamp();
 

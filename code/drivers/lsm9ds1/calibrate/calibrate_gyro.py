@@ -72,8 +72,8 @@ def test_calibration(bias, sensitivity, alignment):
 bias = bias_calibration()
 sensitivity = sensitivity_calibration()
 alignment = alignment_calibration(bias, sensitivity)
-#print(bias)
-#print(sensitivity)
-#print(alignment)
-test_calibration(bias, sensitivity, np.identity(3))
+print(bias)
+print(sensitivity)
+print(alignment)
+#test_calibration(bias, sensitivity, np.identity(3))
 
