@@ -110,6 +110,12 @@ int main() {
                                                         {4, 355, 1},
                                                         {0, 10, 347}};
 
+	vector<double> euler = ahrs_alg.quaternion_to_euler(ahrs_alg.norm({1, 0, 0, 0}));
+	for (int i = 0; i < euler.size(); i++) {
+		cout << to_string(euler[i]) << endl;
+	}
+
+	/*
 	while (true) {
 		double timestamp = get_timestamp();
 
@@ -120,5 +126,6 @@ int main() {
 		cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
 		// cout << get_timestamp() - timestamp << endl;
 	}
+	*/
 }
 

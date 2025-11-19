@@ -15,7 +15,7 @@ double accel_t;
 double accel_t_timestamp = 0;
 */
 
-double ahrs::norm(vector<double> v) {
+double ahrs::norm(vector<double> v) { // calculates the norm of an array
 	double return_value;
 	for (int i = 0; i < v.size(); i++) {
 		return_value += pow(v[i], 2);
@@ -23,84 +23,73 @@ double ahrs::norm(vector<double> v) {
 	return sqrt(return_value);
 }
 
-double ahrs::vector_norm(vector_struct e) {
-	return sqrt(pow(e.x, 2) + pow(e.y, 2) + pow(e.z, 2));
+vector<double> ahrs::quaternion_to_euler(vector<double> q) {
+	vector<double> euler = {0, 0, 0};
+
+	// roll (x-axis rotation)
+	double sinr_cosp = 2 * (q[0] * q[1] + q[2] * q[3]);
+	double cosr_cosp = 1 - 2 * (q[1] * q[1] + q[2] * q[2]);
+	euler[0] = atan2(sinr_cosp, cosr_cosp);
+
+	// pitch (y-axis rotation)
+	double sinp = sqrt(1 + 2 * (q[0] * q[2] - q[1] * q[3]));
+	double cosp = sqrt(1 - 2 * (q[0] * q[2] - q[1] * q[3]));
+	euler[1] = 2 * atan2(sinp, cosp) - M_PI / 2;
+
+	// yaw (z-axis rotation)
+	double siny_cosp = 2 * (q[0] * q[3] + q[1] * q[2]);
+	double cosy_cosp = 1 - 2 * (q[2] * q[2] + q[3] * q[3]);
+	euler[2] = atan2(siny_cosp, cosy_cosp);
+
+	return euler;
+	/*
+	return vector<double> {atan2(2 * (q[2] * q[3] - q[0] * q[1]), 2 * pow(q[0], 2) - 1 + 2 * pow(q[3], 2)),
+	                       -asin(2 * (q[1] * q[3] + q[0] * q[2])),
+	                       atan2(2 * (q[1] * q[2] - q[0] * q[3]), 2 * pow(q[0], 2) - 1 + 2 * pow(q[1], 2))};
+	*/
 }
 
-double ahrs::quaternion_norm(quaternion_struct q) {
-	return sqrt(pow(q.x, 2) + pow(q.y, 2) + pow(q.z, 2) + pow(q.w, 2));
+vector<double> ahrs::quaternion_conjugate(vector<double> q) {
+	return vector<double> {q[0], -q[1], -q[2], -q[3]};
 }
 
-vector_struct ahrs::quaternion_to_euler(quaternion_struct q) {
-	vector_struct return_value;
-
-	return_value.x = atan2(2 * (q.y * q.z - q.w * q.x), 2 * pow(q.w, 2) - 1 + 2 * pow(q.z, 2)),
-	return_value.y = -asin(2 * (q.x * q.z + q.w * q.y)),
-	return_value.z = atan2(2 * (q.x * q.y - q.w * q.z), 2 * pow(q.w, 2) - 1 + 2 * pow(q.x, 2));
-
-	return return_value;
+vector<double> ahrs::quaternion_product(vector<double> qa, vector<double> qb) {
+	return vector<double> {qa[0] * qb[0] - qa[1] * qb[1] - qa[2] * qb[2] - qa[3] * qb[3],
+	                       qa[0] * qb[1] + qa[1] * qb[0] + qa[2] * qb[3] - qa[3] * qb[2],
+	                       qa[0] * qb[2] - qa[1] * qb[3] + qa[2] * qb[0] + qa[3] * qb[1],
+	                       qa[0] * qb[3] + qa[1] * qb[2] - qa[2] * qb[1] + qa[3] * qb[0]};
 }
 
-quaternion_struct ahrs::quaternion_conjugate(quaternion_struct q) {
-	quaternion_struct return_value;
+/*vector<double> scale_quaternion(vector<double> q, double scalar) { // Scale_vector should do the same thing.
+	return vector<double> {q[0] * scalar, q[1] * scalar, q[2] * scalar, q[3] * scalar};
+}*/
 
-	return_value.w = q.w;
-	return_value.x = -q.x;
-	return_value.y = -q.y;
-	return_value.z = -q.z;
-
-	return return_value;
+vector<double> ahrs::cross_product(vector<double> va, vector<double> vb) {
+    return vector<double> {va[1] * vb[2] - va[2] * vb[1], va[2] * vb[0] - va[0] * vb[2], va[0] * vb[1] - va[1] * vb[0]};
 }
 
-quaternion_struct ahrs::quaternion_product(quaternion_struct qa, quaternion_struct qb) {
-	quaternion_struct return_value;
-
-	return_value.w = qa.w * qb.w - qa.x * qb.x - qa.y * qb.y - qa.z * qb.z;
-	return_value.x = qa.w * qb.x + qa.x * qb.w + qa.y * qb.z - qa.z * qb.y;
-	return_value.y = qa.w * qb.y - qa.x * qb.z + qa.y * qb.w - qa.z * qb.x;
-	return_value.z = qa.w * qb.z + qa.x * qb.y + qa.y * qb.x + qa.z * qb.w;
-
-	return return_value;
+vector<double> ahrs::scale_vector(vector<double> v, double scalar) {
+	vector<double> return_vector(v.size());
+	for (int i = 0; i < v.size(); i++) {
+		return_vector[i] = v[i] * scalar;
+	}
+	return return_vector;
 }
 
-vector_struct ahrs::cross_product(vector_struct va, vector_struct vb) {
-	vector_struct return_value;
-
-	return_value.x = va.y * vb.z - va.z * vb.y;
-	return_value.y = va.z * vb.x - va.x * vb.z;
-	return_value.z = va.x * vb.y - va.y * vb.x;
-
-	return return_value;
+vector<double> ahrs::add_vector(vector<double> va, vector<double> vb) {
+	vector<double> return_vector(va.size());
+	for (int i = 0; i < va.size(); ++i) {
+	    return_vector[i] = va[i] + vb[i];
+	}
+	return return_vector;
 }
 
-vector_struct ahrs::scale_vector(vector_struct v, double scalar) {
-	vector_struct return_value;
-
-	return_value.x = v.x * scalar;
-	return_value.y = v.y * scalar;
-	return_value.z = v.z * scalar;
-
-	return return_value;
-}
-
-vector_struct ahrs::add_vector(vector_struct va, vector_struct vb) {
-	vector_struct return_value;
-
-	return_value.x = va.x + vb.x;
-	return_value.y = va.y + vb.y;
-	return_value.z = va.z + vb.z;
-
-	return return_value;
-}
-
-vector_struct ahrs::subtract_vector(vector_struct va, vector_struct vb) {
-	vector_struct return_value;
-
-	return_value.x = va.x - vb.x;
-	return_value.y = va.y - vb.y;
-	return_value.z = va.z - vb.z;
-
-	return return_value;
+vector<double> ahrs::subtract_vector(vector<double> va, vector<double> vb) {
+	vector<double> return_vector(va.size());
+	for (int i = 0; i < va.size(); ++i) {
+	    return_vector[i] = va[i] - vb[i];
+	}
+	return return_vector;
 }
 
 double ahrs::get_timestamp() {
@@ -112,50 +101,38 @@ double ahrs::current_time() {
 	return get_timestamp() - start_timestamp;
 }
 
-vector_struct ahrs::gyro_bias_compensation(vector_struct gyro) { // Possibly replace with low pass filter.
+vector<double> ahrs::gyro_bias_compensation(vector<double> gyro) { // Possibly replace with low pass filter.
 	return gyro;
 }
 
-vector_struct ahrs::mag_rejection(vector_struct mag) {
-	vector_norm(mag);
-	if (settings.min_mag_distortion < vector_norm(mag) && vector_norm(mag) < settings.max_mag_distoriton) {
+vector<double> ahrs::mag_rejection(vector<double> mag) {
+	norm(mag);
+	if (settings.min_mag_distortion < norm(mag) && norm(mag) < settings.max_mag_distoriton) {
 		 return mag;
 	}
 	else {
-		vector_struct return_value;
-
-		return_value.x = 0;
-		return_value.y = 0;
-		return_value.z = 0;
-
-		return return_value;
+		return vector<double> {0, 0, 0};
 	}
 }
 
-vector_struct ahrs::accel_rejection(vector_struct accel){ 
+vector<double> ahrs::accel_rejection(vector<double> accel){ 
 	// calculate the amount of time that the accelerometer measurment is unreliable
 	if (accel_t_timestamp == 0)
 		accel_t_timestamp = get_timestamp();
-	if (-settings.accel_rejection < (vector_norm(accel) - 1) && (vector_norm(accel) - 1) < settings.accel_rejection) 
+	if (-settings.accel_rejection < (norm(accel) - 1) && (norm(accel) - 1) < settings.accel_rejection) 
 		accel_t += get_timestamp() - accel_t_timestamp;
 	else 
 		accel_t = 0;
 
 	if (accel_t > settings.accel_rejection_t) {
-		vector_struct return_value;
-
-		return_value.x = 0;
-		return_value.y = 0;
-		return_value.z = 0;
-
-		return return_value;
+		return vector<double> {0, 0, 0};
 	}
 	else {
 		return accel;
 	}
 }
 
-output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struct mag, double dt) {
+output_struct ahrs::update(vector<double> gyro, vector<double> accel, vector<double> mag, double dt) {
 	output_struct return_outputs;
 
 	// set timestamp
@@ -169,12 +146,12 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 		gain = settings.gain_normal;
 	
 	// sensor conditioning
-	vector_struct gyro_conditioned = gyro_bias_compensation(gyro);
-	vector_struct accel_conditioned = accel_rejection(accel);
-	vector_struct mag_conditioned = mag_rejection(mag);
+	vector<double> gyro_conditioned = gyro_bias_compensation(gyro);
+	vector<double> accel_conditioned = accel_rejection(accel);
+	vector<double> mag_conditioned = mag_rejection(mag);
 
 	// error calculation
-	vector_struct accel_normalized = scale_vector(accel_conditioned, 1/vector_norm(accel_conditioned));
+	vector<double> accel_normalized = scale_vector(accel_conditioned, 1/norm(accel_conditioned));
 	a_error = cross_product(accel_normalized, vector<double> {(2 * orientation[1] * orientation[3]) - (2 * orientation[0] * orientation[2]),
                                                               (2 * orientation[2] * orientation[3]) + (2 * orientation[0] * orientation[1]),
                                                               (2 * pow(orientation[0], 2)) - 1 + (2 * pow(orientation[3], 2))});

@@ -1,4 +1,4 @@
-#include <vector>
+#import <vector>
 
 /*
 #define X = 0
@@ -35,11 +35,11 @@ struct output_struct {
 };
 
 struct calibrate {
-	std::vector<std::vector<double>> rotation_matrix;
-	std::vector<double> sensitivity;
-	std::vector<double> bias;
-	std::vector<double> soft_iorn;
-	std::vector<double> hard_iorn;
+	vector_struct rotation_matrix[3];
+	vector_struct sensitivity;
+	vector_struct bias;
+	vector_struct soft_iorn[3];
+	vector_struct hard_iorn;
 };
 
 struct settings_struct{
@@ -76,16 +76,16 @@ class ahrs {
 	// ---------------------------------------- VARIABLES ----------------------------------------
 
 	// Orientation as a quaterion. Starts at no rotation.
-	std::vector<double> orientation = {1, 0, 0, 0}; 
+	quaternion_struct orientation; 
 
 	// Total error of the algorithm.
-	std::vector<double> error;
+	vector_struct error;
 
 	// Error of the gyrometer from accelerometer.
-	std::vector<double> a_error;
+	vector_struct a_error;
 
 	// Error of the gyrometer from the magnetometer. 
-	std::vector<double> m_error;
+	vector_struct m_error;
 
 	// Gain of the algorithm, changes as the algorithm initializes.
 	double gain;
@@ -159,26 +159,32 @@ class ahrs {
 	// Calculates normal of array.
 	double norm(std::vector<double> v);
 
+	// Calculates normal of an euler angle.
+	double vector_norm(vector_struct e);
+
+	// Calculates normal of a quaternion.
+	double quaternion_norm(quaternion_struct q);
+
 	// Converts quaterion angle to euler angle.
-	std::vector<double> quaternion_to_euler(std::vector<double> q);
+	vector_struct quaternion_to_euler(quaternion_struct q);
 
 	// Calculates conjugate of quaterion.
-	std::vector<double> quaternion_conjugate(std::vector<double> q);
+	quaternion_struct quaternion_conjugate(quaternion_struct q);
 
 	// Calculates product of two quaternions.
-	std::vector<double> quaternion_product(std::vector<double> qa, std::vector<double> qb);
+	quaternion_struct quaternion_product(quaternion_struct qa, quaternion_struct qb);
 
 	// Calcuates cross product of two vectors.
-	std::vector<double> cross_product(std::vector<double> va, std::vector<double> vb);
+	vector_struct cross_product(vector_struct va, vector_struct vb);
 
 	// Multiplies vector by scalar.
-	std::vector<double> scale_vector(std::vector<double> v, double scalar);
+	vector_struct scale_vector(vector_struct v, double scalar);
 
 	// Adds two vectors.
-	std::vector<double> add_vector(std::vector<double> va, std::vector<double> vb);
+	vector_struct add_vector(vector_struct va, vector_struct vb);
 
 	// Subtracts two vectors.
-	std::vector<double> subtract_vector(std::vector<double> va, std::vector<double> vb);
+	vector_struct subtract_vector(vector_struct va, vector_struct vb);
 
 	// Gets time in miliseconds since epoch.
 	double get_timestamp();
@@ -187,15 +193,15 @@ class ahrs {
 	double current_time();
 
 	// Currently returns input. Will eventualy replace with some sort of low pass filter.
-	std::vector<double> gyro_bias_compensation(std::vector<double> gyro);
+	vector_struct gyro_bias_compensation(vector_struct gyro);
 
 	// Ignores magnetometer readings when the magnetometer variation is too high and unreliable.
-	std::vector<double> mag_rejection(std::vector<double> mag);
+	vector_struct mag_rejection(vector_struct mag);
 
 	// Ignores accelerometer readings when accelerating too much and the accelerometer is unreliable.
-	std::vector<double> accel_rejection(std::vector<double> accel);
+	vector_struct accel_rejection(vector_struct accel);
 
-	output_struct update(std::vector<double> gyro, std::vector<double> accel, std::vector<double> mag, double dt);
+	output_struct update(vector_struct gyro, vector_struct accel, vector_struct, double dt);
 
 	// ahrs(settings_struct settings_to_set);
 };
