@@ -1,4 +1,4 @@
-#import <vector>
+// #import <vector>
 
 /*
 #define X = 0
@@ -18,6 +18,12 @@ struct vector_struct {
 	double x, y, z;
 };
 
+struct matrix_struct {
+	vector_struct x;
+	vector_struct y;
+	vector_struct z;
+};
+
 struct orientation_struct {
 	quaternion_struct quaterion;
 	vector_struct euler;
@@ -35,10 +41,10 @@ struct output_struct {
 };
 
 struct calibrate {
-	vector_struct rotation_matrix[3];
+	matrix_struct rotation_matrix;
 	vector_struct sensitivity;
 	vector_struct bias;
-	vector_struct soft_iorn[3];
+	matrix_struct soft_iorn;
 	vector_struct hard_iorn;
 };
 
@@ -91,7 +97,7 @@ class ahrs {
 	double gain;
 
 	// The timestamp when the algorithm starts.
-	double start_timestamp = 0;
+	double start_timestamp = -1;
 
 	// Amount of time the accelerometer is unreliable in miliseconds.
 	double accel_t;
@@ -157,7 +163,7 @@ class ahrs {
 	// ---------------------------------------- FUNCTIONS ----------------------------------------
 
 	// Calculates normal of array.
-	double norm(std::vector<double> v);
+	// double norm(std::vector<double> v);
 
 	// Calculates normal of an euler angle.
 	double vector_norm(vector_struct e);
@@ -173,6 +179,15 @@ class ahrs {
 
 	// Calculates product of two quaternions.
 	quaternion_struct quaternion_product(quaternion_struct qa, quaternion_struct qb);
+
+	// Multiplies quaternion by scalar.
+	quaternion_struct scale_quaternion(quaternion_struct v, double scalar);
+
+	// Adds two quaternions.
+	quaternion_struct add_quaternion(quaternion_struct va, quaternion_struct vb);
+
+	// Subtracts two quaternions.
+	quaternion_struct subtract_quaternion(quaternion_struct va, quaternion_struct vb);
 
 	// Calcuates cross product of two vectors.
 	vector_struct cross_product(vector_struct va, vector_struct vb);

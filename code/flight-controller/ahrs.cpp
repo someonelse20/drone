@@ -1,7 +1,10 @@
 #include <cmath>
-#include <vector>
 #include <chrono>
 #include "ahrs.h"
+#include <iostream>
+#include <string>
+
+// #include <vector>
 
 using namespace std;
 
@@ -15,6 +18,7 @@ double accel_t;
 double accel_t_timestamp = 0;
 */
 
+/*
 double ahrs::norm(vector<double> v) {
 	double return_value;
 	for (int i = 0; i < v.size(); i++) {
@@ -22,6 +26,7 @@ double ahrs::norm(vector<double> v) {
 	}
 	return sqrt(return_value);
 }
+*/
 
 double ahrs::vector_norm(vector_struct e) {
 	return sqrt(pow(e.x, 2) + pow(e.y, 2) + pow(e.z, 2));
@@ -34,9 +39,9 @@ double ahrs::quaternion_norm(quaternion_struct q) {
 vector_struct ahrs::quaternion_to_euler(quaternion_struct q) {
 	vector_struct return_value;
 
-	return_value.x = atan2(2 * (q.y * q.z - q.w * q.x), 2 * pow(q.w, 2) - 1 + 2 * pow(q.z, 2)),
-	return_value.y = -asin(2 * (q.x * q.z + q.w * q.y)),
-	return_value.z = atan2(2 * (q.x * q.y - q.w * q.z), 2 * pow(q.w, 2) - 1 + 2 * pow(q.x, 2));
+	return_value.x = atan2(2 * (q.y * q.z - q.w * q.x), 2 * pow(q.w, 2) - 1 + 2 * pow(q.z, 2)) * 180.0 / M_PI,
+	return_value.y = -asin(2 * (q.x * q.z + q.w * q.y)) * 180.0 / M_PI,
+	return_value.z = atan2(2 * (q.x * q.y - q.w * q.z), 2 * pow(q.w, 2) - 1 + 2 * pow(q.x, 2)) * 180.0 / M_PI;
 
 	return return_value;
 }
@@ -59,6 +64,39 @@ quaternion_struct ahrs::quaternion_product(quaternion_struct qa, quaternion_stru
 	return_value.x = qa.w * qb.x + qa.x * qb.w + qa.y * qb.z - qa.z * qb.y;
 	return_value.y = qa.w * qb.y - qa.x * qb.z + qa.y * qb.w - qa.z * qb.x;
 	return_value.z = qa.w * qb.z + qa.x * qb.y + qa.y * qb.x + qa.z * qb.w;
+
+	return return_value;
+}
+
+quaternion_struct ahrs::scale_quaternion(quaternion_struct v, double scalar) {
+	quaternion_struct return_value;
+
+	return_value.w = v.w * scalar;
+	return_value.x = v.x * scalar;
+	return_value.y = v.y * scalar;
+	return_value.z = v.z * scalar;
+
+	return return_value;
+}
+
+quaternion_struct ahrs::add_quaternion(quaternion_struct va, quaternion_struct vb) {
+	quaternion_struct return_value;
+
+	return_value.w = va.w + vb.w;
+	return_value.x = va.x + vb.x;
+	return_value.y = va.y + vb.y;
+	return_value.z = va.z + vb.z;
+
+	return return_value;
+}
+
+quaternion_struct ahrs::subtract_quaternion(quaternion_struct va, quaternion_struct vb) {
+	quaternion_struct return_value;
+
+	return_value.w = va.w - vb.w;
+	return_value.x = va.x - vb.x;
+	return_value.y = va.y - vb.y;
+	return_value.z = va.z - vb.z;
 
 	return return_value;
 }
@@ -109,6 +147,7 @@ double ahrs::get_timestamp() {
 }
 
 double ahrs::current_time() {
+	// cout << to_string(get_timestamp() - start_timestamp) << endl;
 	return get_timestamp() - start_timestamp;
 }
 
@@ -159,14 +198,19 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	output_struct return_outputs;
 
 	// set timestamp
-	if (start_timestamp == 0)
+	if (start_timestamp == -1) {
 		start_timestamp = get_timestamp();
+	}
+
+	cout << to_string(start_timestamp) << endl;
 
 	// initialise 
-	if (current_time() < settings.init_time) 
+	if (current_time() < settings.init_time + start_timestamp) 
 		gain = settings.gain_init + (pow(settings.gain_init, -current_time()) / settings.gain_init) * (settings.gain_init - settings.gain_normal);
 	else
 		gain = settings.gain_normal;
+
+	// cout << to_string(current_time()) + ", " + to_string(settings.init_time + start_timestamp) + ", " + to_string(gain) << endl;
 	
 	// sensor conditioning
 	vector_struct gyro_conditioned = gyro_bias_compensation(gyro);
@@ -175,67 +219,49 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 
 	// error calculation
 	vector_struct accel_normalized = scale_vector(accel_conditioned, 1/vector_norm(accel_conditioned));
-	a_error = cross_product(accel_normalized, vector<double> {(2 * orientation[1] * orientation[3]) - (2 * orientation[0] * orientation[2]),
-                                                              (2 * orientation[2] * orientation[3]) + (2 * orientation[0] * orientation[1]),
-                                                              (2 * pow(orientation[0], 2)) - 1 + (2 * pow(orientation[3], 2))});
-	vector<double> cross_a_m = cross_product(accel_normalized, scale_vector(mag_conditioned, 1/norm(mag_conditioned)));
-	m_error = cross_product(cross_a_m, vector<double> {(-2 * pow(orientation[0], 2)) + 1 - (2 * pow(orientation[0], 2)),
-	                                                   (-2 * orientation[1] * orientation[2]) + (2 * orientation[0] * orientation[3]),
-	                                                   (-2 * orientation[1] * orientation[3]) - (2 * orientation[0] * orientation[2])});
+	a_error = cross_product(accel_normalized, vector_struct {(2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y),
+                                                              (2 * orientation.y * orientation.z) + (2 * orientation.w * orientation.x),
+                                                              (2 * pow(orientation.w, 2)) - 1 + (2 * pow(orientation.z, 2))});
+	vector_struct cross_a_m = cross_product(accel_normalized, scale_vector(mag_conditioned, 1/vector_norm(mag_conditioned)));
+	m_error = cross_product(cross_a_m, vector_struct {(-2 * pow(orientation.w, 2)) + 1 - (2 * pow(orientation.x, 2)),
+	                                                   (-2 * orientation.x * orientation.y) + (2 * orientation.w * orientation.z),
+	                                                   (-2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y)});
 	
-	if (norm(accel_conditioned) > 0 && norm(mag_conditioned) > 0)
+	if (vector_norm(accel_conditioned) > 0 && vector_norm(mag_conditioned) > 0)
 		error = add_vector(a_error, m_error);
-	else if (norm(accel_conditioned) > 0)
+	else if (vector_norm(accel_conditioned) > 0)
 		error = a_error;
 	else 
-		error = vector<double> {0, 0, 0};
+		error = vector_struct {0, 0, 0};
 
 	// complementary filter
-	vector<double> gyro_error_product = subtract_vector(gyro_conditioned, scale_vector(error, gain));
-	vector<double> orientation_rate_of_chage = scale_vector(quaternion_product(orientation, vector<double> {0, gyro_error_product[0], gyro_error_product[1], gyro_error_product[2]}), 0.5);
+	vector_struct gyro_error_product = subtract_vector(gyro_conditioned, scale_vector(error, gain));
+	quaternion_struct orientation_rate_of_chage = scale_quaternion(quaternion_product(orientation, quaternion_struct {0, gyro_error_product.x, gyro_error_product.y, gyro_error_product.z}), 0.5);
 
-	vector<double> orientation_unnormalised = add_vector(orientation, scale_vector(orientation_rate_of_chage, dt));
-	orientation = scale_vector(orientation_unnormalised, 1 / norm(orientation_unnormalised));
+	quaternion_struct orientation_unnormalised = add_quaternion(orientation, scale_quaternion(orientation_rate_of_chage, dt));
+	orientation = scale_quaternion(orientation_unnormalised, 1 / quaternion_norm(orientation_unnormalised));
 
 	// zero g acceleration calculation (Don't use the rejected acceleration results here.)
-	vector<double> acceleration_zero = subtract_vector(accel, vector<double> {2 * orientation[1] * orientation[3] - 2 * orientation[0] * orientation[2],
-	                                                                          2 * orientation[2] * orientation[3] + 2 * orientation[0] * orientation[1],
-	                                                                          2 * pow(orientation[0], 2) - 1 + 2 * pow(orientation[3], 2)});
-	vector<double> orientation_global = quaternion_conjugate(orientation);
-	vector<double> acceleration_global_quaternion = quaternion_product(quaternion_product(orientation, vector<double> {0, acceleration_zero[0], acceleration_zero[1], acceleration_zero[2]}),
+	vector_struct acceleration_zero = subtract_vector(accel, vector_struct {2 * orientation.x * orientation.z - 2 * orientation.w * orientation.y,
+	                                                                          2 * orientation.y * orientation.z + 2 * orientation.w * orientation.x,
+	                                                                          2 * pow(orientation.w, 2) - 1 + 2 * pow(orientation.z, 2)});
+	quaternion_struct orientation_global = quaternion_conjugate(orientation);
+	quaternion_struct acceleration_global_quaternion = quaternion_product(quaternion_product(orientation, quaternion_struct {0, acceleration_zero.x, acceleration_zero.y, acceleration_zero.z}),
 	                                                                   orientation_global);
-	vector<double> acceleration_global = vector<double> {acceleration_global_quaternion[1], acceleration_global_quaternion[2], acceleration_global_quaternion[3]};
+	vector_struct acceleration_global = vector_struct {acceleration_global_quaternion.x, acceleration_global_quaternion.y, acceleration_global_quaternion.z};
 
 	// return value definition
-	return_outputs.orientation_earth_frame.quaterion.w = orientation[0];
-	return_outputs.orientation_earth_frame.quaterion.x = orientation[1];
-	return_outputs.orientation_earth_frame.quaterion.y = orientation[2];
-	return_outputs.orientation_earth_frame.quaterion.z = orientation[3];
+	return_outputs.orientation_earth_frame.quaterion = orientation;
 
-	return_outputs.orientation.quaterion.w = orientation_global[0];
-	return_outputs.orientation.quaterion.x = orientation_global[1];
-	return_outputs.orientation.quaterion.y = orientation_global[2];
-	return_outputs.orientation.quaterion.z = orientation_global[3];
+	return_outputs.orientation.quaterion = orientation_global;
 
-	vector<double> orientation_euler = quaternion_to_euler(orientation);
-
-	return_outputs.orientation_earth_frame.euler.x = orientation_euler[0];
-	return_outputs.orientation_earth_frame.euler.y = orientation_euler[1];
-	return_outputs.orientation_earth_frame.euler.z = orientation_euler[2];
+	return_outputs.orientation_earth_frame.euler = quaternion_to_euler(orientation);
 	
-	vector<double> orientation_global_euler = quaternion_to_euler(orientation_global);
+	return_outputs.orientation.euler = quaternion_to_euler(orientation_global);
 
-	return_outputs.orientation.euler.x = orientation_global_euler[0];
-	return_outputs.orientation.euler.y = orientation_global_euler[1];
-	return_outputs.orientation.euler.z = orientation_global_euler[2];
+	return_outputs.acceleration.zero = acceleration_zero;
 
-	return_outputs.acceleration.zero.x = acceleration_zero[0];
-	return_outputs.acceleration.zero.y = acceleration_zero[1];
-	return_outputs.acceleration.zero.z = acceleration_zero[2];
-
-	return_outputs.acceleration.global.x = acceleration_global[0];
-	return_outputs.acceleration.global.y = acceleration_global[1];
-	return_outputs.acceleration.global.z = acceleration_global[2];
+	return_outputs.acceleration.global = acceleration_global;
 
 	return return_outputs;
 }

@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string>
 #include <unistd.h>
-#include <vector>
 #include <chrono>
 #include "ahrs.h"
 #include <LSM9DS1_Types.h>
@@ -11,9 +10,9 @@
 using namespace std;
 
 struct imu_data {
-	vector<double> gyro = {0, 0, 0};
-	vector<double> accel = {0, 0, 0};
-	vector<double> mag = {0, 0, 0};
+	vector_struct gyro = {0, 0, 0};
+	vector_struct accel = {0, 0, 0};
+	vector_struct mag = {0, 0, 0};
 };
 
 LSM9DS1 imu(IMU_MODE_I2C, 0x6b, 0x1e);
@@ -27,7 +26,7 @@ double get_timestamp() {
 }
 
 // Initialize LSM9DS1.
-void imu_init(int accel_scale = 4, int gyro_scale = 500, int mag_scale = 0) { // Set default settings for LSM9DS1. mag_scale is not currently used.
+void imu_init(int accel_scale = 8, int gyro_scale = 500, int mag_scale = 0) { // Set default settings for LSM9DS1. mag_scale is not currently used.
 	// Set settings
 	imu.settings.gyro.scale = gyro_scale;
 	imu.settings.accel.scale = accel_scale;
@@ -39,7 +38,7 @@ void imu_init(int accel_scale = 4, int gyro_scale = 500, int mag_scale = 0) { //
 		exit(EXIT_FAILURE);
 	}
 	// Possibly remove later.
-	imu.calibrate();
+	// imu.calibrate();
 };
 
 // Read data from LSM9DS1 and output the gyro, accel, and mag data in a struct.
@@ -55,17 +54,17 @@ imu_data read_imu() {
 	while (!imu.magAvailable()) ;
 	imu.readMag();
 
-	data.gyro[0] = imu.calcGyro(imu.gx);
-	data.gyro[1] = imu.calcGyro(imu.gy);
-	data.gyro[2] = imu.calcGyro(imu.gz);
+	data.gyro.x = imu.calcGyro(imu.gx);
+	data.gyro.y = imu.calcGyro(imu.gy);
+	data.gyro.z = imu.calcGyro(imu.gz);
 
-	data.accel[0] = imu.calcAccel(imu.gx);
-	data.accel[1] = imu.calcAccel(imu.gy);
-	data.accel[2] = imu.calcAccel(imu.gz);
+	data.accel.x = imu.calcAccel(imu.ax);
+	data.accel.y = imu.calcAccel(imu.ay);
+	data.accel.z = imu.calcAccel(imu.az);
 
-	data.mag[0] = imu.calcMag(imu.gx);
-	data.mag[1] = imu.calcMag(imu.gy);
-	data.mag[2] = imu.calcMag(imu.gz);
+	data.mag.x = imu.calcMag(imu.mx);
+	data.mag.y = imu.calcMag(imu.my);
+	data.mag.z = imu.calcMag(imu.mz);
 
 	return data;
 }
@@ -80,15 +79,15 @@ void test_imu(bool loop=false) { // If loop = true then this function will loop 
 		while (1) {
 			data = read_imu();
 
-			cout << "Gyro: " << to_string(data.gyro[0]) + "," + to_string(data.gyro[1]) + "," + to_string(data.gyro[2]) << ", Accel: " << to_string(data.accel[0]) + "," + to_string(data.accel[1]) + "," + to_string(2) << ", Mag: " << to_string(data.mag[0]) + "," + to_string(data.mag[1]) + "," + to_string(data.mag[2]) << endl;
+			cout << "Gyro: " << to_string(data.gyro.x) + "," + to_string(data.gyro.y) + "," + to_string(data.gyro.z) << ", Accel: " << to_string(data.accel.x) + "," + to_string(data.accel.y) + "," + to_string(data.accel.z) << ", Mag: " << to_string(data.mag.x) + "," + to_string(data.mag.y) + "," + to_string(data.mag.z) << endl;
 		
 			usleep(100000);
 		}
 	} else {
 		data = read_imu();
 
-		cout << "Gyro: " << to_string(data.gyro[0]) + "," + to_string(data.gyro[1]) + "," + to_string(data.gyro[2]) << ", Accel: " << to_string(data.accel[0]) + "," + to_string(data.accel[1]) + "," + to_string(2) << ", Mag: " << to_string(data.mag[0]) + "," + to_string(data.mag[1]) + "," + to_string(data.mag[2]) << endl;
-		
+			cout << "Gyro: " << to_string(data.gyro.x) + "," + to_string(data.gyro.y) + "," + to_string(data.gyro.z) << ", Accel: " << to_string(data.accel.x) + "," + to_string(data.accel.y) + "," + to_string(data.accel.z) << ", Mag: " << to_string(data.mag.x) + "," + to_string(data.mag.y) + "," + to_string(data.mag.z) << endl;
+
 		usleep(100000);
 	}
 }
@@ -110,12 +109,14 @@ int main() {
                                                         {4, 355, 1},
                                                         {0, 10, 347}};
 
-	vector<double> euler = ahrs_alg.quaternion_to_euler(ahrs_alg.norm({1, 0, 0, 0}));
-	for (int i = 0; i < euler.size(); i++) {
-		cout << to_string(euler[i]) << endl;
-	}
-
 	/*
+	vector_struct euler = ahrs_alg.quaternion_to_euler(quaternion_struct {0.9238795, 0.3826834, 0, 0});
+
+	cout << to_string(euler.x) + ", " + to_string(euler.y) + ", " + to_string(euler.z) << endl;
+	*/
+
+	// test_imu(true);
+
 	while (true) {
 		double timestamp = get_timestamp();
 
@@ -123,9 +124,8 @@ int main() {
 
 		output_struct orientation = update_orientation(ahrs_alg, read_imu());
 
-		cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
+		// cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
 		// cout << get_timestamp() - timestamp << endl;
 	}
-	*/
 }
 
