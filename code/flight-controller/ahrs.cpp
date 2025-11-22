@@ -147,7 +147,6 @@ double ahrs::get_timestamp() {
 }
 
 double ahrs::current_time() {
-	// cout << to_string(get_timestamp() - start_timestamp) << endl;
 	return get_timestamp() - start_timestamp;
 }
 
@@ -157,10 +156,7 @@ vector_struct ahrs::gyro_bias_compensation(vector_struct gyro) { // Possibly rep
 
 vector_struct ahrs::mag_rejection(vector_struct mag) {
 	vector_norm(mag);
-	if (settings.min_mag_distortion < vector_norm(mag) && vector_norm(mag) < settings.max_mag_distoriton) {
-		 return mag;
-	}
-	else {
+	if (-settings.min_mag_distortion < vector_norm(mag) && vector_norm(mag) < settings.max_mag_distoriton) {
 		vector_struct return_value;
 
 		return_value.x = 0;
@@ -169,16 +165,19 @@ vector_struct ahrs::mag_rejection(vector_struct mag) {
 
 		return return_value;
 	}
+	else {
+		return mag;
+	}
 }
 
 vector_struct ahrs::accel_rejection(vector_struct accel){ 
 	// calculate the amount of time that the accelerometer measurment is unreliable
 	if (accel_t_timestamp == 0)
 		accel_t_timestamp = get_timestamp();
-	if (-settings.accel_rejection < (vector_norm(accel) - 1) && (vector_norm(accel) - 1) < settings.accel_rejection) 
-		accel_t += get_timestamp() - accel_t_timestamp;
-	else 
+	if ((vector_norm(accel) - 1) > -settings.accel_rejection && (vector_norm(accel) - 1) < settings.accel_rejection) 
 		accel_t = 0;
+	else 
+		accel_t += get_timestamp() - accel_t_timestamp;
 
 	if (accel_t > settings.accel_rejection_t) {
 		vector_struct return_value;
@@ -202,7 +201,6 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 		start_timestamp = get_timestamp();
 	}
 
-	cout << to_string(start_timestamp) << endl;
 
 	// initialise 
 	if (current_time() < settings.init_time + start_timestamp) 
@@ -210,8 +208,6 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	else
 		gain = settings.gain_normal;
 
-	// cout << to_string(current_time()) + ", " + to_string(settings.init_time + start_timestamp) + ", " + to_string(gain) << endl;
-	
 	// sensor conditioning
 	vector_struct gyro_conditioned = gyro_bias_compensation(gyro);
 	vector_struct accel_conditioned = accel_rejection(accel);

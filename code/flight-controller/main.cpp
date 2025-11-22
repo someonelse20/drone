@@ -120,11 +120,12 @@ int main() {
 	while (true) {
 		double timestamp = get_timestamp();
 
-		read_imu();
+		imu_data imu_readings = read_imu();
 
-		output_struct orientation = update_orientation(ahrs_alg, read_imu());
+		output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
 
-		// cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
+		cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
+		// cout << orientation.orientation.quaterion.x << orientation.orientation.quaterion.y << orientation.orientation.quaterion.z << orientation.orientation.quaterion.w << endl;
 		// cout << get_timestamp() - timestamp << endl;
 	}
 }

@@ -51,13 +51,13 @@ struct calibrate {
 struct settings_struct{
 	double gain_normal=0.5;
 	double gain_init=10;
-	double init_time=300; // Time the algorithm is initializing in miliseconds.
+	double init_time=3000; // Time the algorithm is initializing in miliseconds.
 	
 	double min_mag_distortion=0.22;
 	double max_mag_distoriton=0.67;
 	
 	double accel_rejection=0.1; // Acceleration in g that the accelerometer should be considered unreliable.
-	double accel_rejection_t=100; // Time in ms that acceleration > accel_rejection after which the accelerometer will be rejected.
+	double accel_rejection_t=1000; // Time in ms that acceleration > accel_rejection after which the accelerometer will be rejected.
 	
 	calibrate gyro_calibrate;
 	calibrate accel_calibrate;
@@ -82,16 +82,16 @@ class ahrs {
 	// ---------------------------------------- VARIABLES ----------------------------------------
 
 	// Orientation as a quaterion. Starts at no rotation.
-	quaternion_struct orientation; 
+	quaternion_struct orientation = {1, 0, 0, 0}; 
 
 	// Total error of the algorithm.
-	vector_struct error;
+	vector_struct error = {0, 0, 0};
 
 	// Error of the gyrometer from accelerometer.
-	vector_struct a_error;
+	vector_struct a_error = {0, 0, 0};
 
 	// Error of the gyrometer from the magnetometer. 
-	vector_struct m_error;
+	vector_struct m_error = {0, 0, 0};
 
 	// Gain of the algorithm, changes as the algorithm initializes.
 	double gain;
