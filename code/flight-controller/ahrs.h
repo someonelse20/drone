@@ -52,6 +52,7 @@ struct settings_struct{
 	double gain_normal=0.5;
 	double gain_init=10;
 	double init_time=3000; // Time the algorithm is initializing in miliseconds.
+	double init_value = 1.003;
 	
 	double min_mag_distortion=0.22;
 	double max_mag_distoriton=0.67;

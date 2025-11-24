@@ -2,31 +2,8 @@
 #include <chrono>
 #include "ahrs.h"
 #include <iostream>
-#include <string>
-
-// #include <vector>
 
 using namespace std;
-
-/*vector<double> orientation = {1, 0, 0, 0}; // Orientation as a quaterion. Starts at no rotation.
-double gain;
-vector<double> error(3), a_error(3), m_error(3);
-
-double start_timestamp = 0;
-
-double accel_t;
-double accel_t_timestamp = 0;
-*/
-
-/*
-double ahrs::norm(vector<double> v) {
-	double return_value;
-	for (int i = 0; i < v.size(); i++) {
-		return_value += pow(v[i], 2);
-	}
-	return sqrt(return_value);
-}
-*/
 
 double ahrs::vector_norm(vector_struct e) {
 	return sqrt(pow(e.x, 2) + pow(e.y, 2) + pow(e.z, 2));
@@ -203,8 +180,8 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 
 
 	// initialise 
-	if (current_time() < settings.init_time + start_timestamp) 
-		gain = settings.gain_init + (pow(settings.gain_init, -current_time()) / settings.gain_init) * (settings.gain_init - settings.gain_normal);
+	if (current_time() < settings.init_time) 
+		gain = settings.gain_normal + (pow(settings.init_value, -current_time()) / settings.init_value) * (settings.gain_init - settings.gain_normal);
 	else
 		gain = settings.gain_normal;
 
@@ -216,12 +193,12 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	// error calculation
 	vector_struct accel_normalized = scale_vector(accel_conditioned, 1/vector_norm(accel_conditioned));
 	a_error = cross_product(accel_normalized, vector_struct {(2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y),
-                                                              (2 * orientation.y * orientation.z) + (2 * orientation.w * orientation.x),
-                                                              (2 * pow(orientation.w, 2)) - 1 + (2 * pow(orientation.z, 2))});
+                                                             (2 * orientation.y * orientation.z) + (2 * orientation.w * orientation.x),
+                                                             (2 * pow(orientation.w, 2)) - 1 + (2 * pow(orientation.z, 2))});
 	vector_struct cross_a_m = cross_product(accel_normalized, scale_vector(mag_conditioned, 1/vector_norm(mag_conditioned)));
 	m_error = cross_product(cross_a_m, vector_struct {(-2 * pow(orientation.w, 2)) + 1 - (2 * pow(orientation.x, 2)),
-	                                                   (-2 * orientation.x * orientation.y) + (2 * orientation.w * orientation.z),
-	                                                   (-2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y)});
+                                                      (-2 * orientation.x * orientation.y) + (2 * orientation.w * orientation.z),
+                                                      (-2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y)});
 	
 	if (vector_norm(accel_conditioned) > 0 && vector_norm(mag_conditioned) > 0)
 		error = add_vector(a_error, m_error);
@@ -229,6 +206,9 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 		error = a_error;
 	else 
 		error = vector_struct {0, 0, 0};
+
+	// cout << a_error.x << "," << a_error.y << "," << a_error.z << endl;
+	// cout << error.x << "," << error.y << "," << error.z << endl;
 
 	// complementary filter
 	vector_struct gyro_error_product = subtract_vector(gyro_conditioned, scale_vector(error, gain));
@@ -261,10 +241,4 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 
 	return return_outputs;
 }
-
-/*
-ahrs::ahrs(settings_struct settings_to_set) {
-	settings = settings_to_set;
-}
-*/
 

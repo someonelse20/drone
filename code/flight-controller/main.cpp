@@ -109,12 +109,6 @@ int main() {
                                                         {4, 355, 1},
                                                         {0, 10, 347}};
 
-	/*
-	vector_struct euler = ahrs_alg.quaternion_to_euler(quaternion_struct {0.9238795, 0.3826834, 0, 0});
-
-	cout << to_string(euler.x) + ", " + to_string(euler.y) + ", " + to_string(euler.z) << endl;
-	*/
-
 	// test_imu(true);
 
 	while (true) {
