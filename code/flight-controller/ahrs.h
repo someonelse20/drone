@@ -50,9 +50,8 @@ struct calibrate {
 
 struct settings_struct{
 	double gain_normal=0.5;
-	double gain_init=10;
-	double init_time=3000; // Time the algorithm is initializing in miliseconds.
-	double init_value = 1.003;
+	double gain_init=10.0;
+	double init_time=3.0; // Time the algorithm is initializing in seconds.
 	
 	double min_mag_distortion=0.22;
 	double max_mag_distoriton=0.67;
@@ -100,7 +99,7 @@ class ahrs {
 	// The timestamp when the algorithm starts.
 	double start_timestamp = -1;
 
-	// Amount of time the accelerometer is unreliable in miliseconds.
+	// Amount of time the accelerometer is unreliable in seconds.
 	double accel_t;
 
 	// Timestamp used for calculating accel_t.
@@ -202,7 +201,7 @@ class ahrs {
 	// Subtracts two vectors.
 	vector_struct subtract_vector(vector_struct va, vector_struct vb);
 
-	// Gets time in miliseconds since epoch.
+	// Gets time in seconds since epoch.
 	double get_timestamp();
 
 	// Gets current time by subtracting time since epoch by the time the algorithm started.

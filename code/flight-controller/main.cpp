@@ -17,7 +17,7 @@ struct imu_data {
 
 LSM9DS1 imu(IMU_MODE_I2C, 0x6b, 0x1e);
 
-double dt = 27; // Deltatime in miliseconds.
+double dt = 0.027; // Deltatime in miliseconds.
 
 // Gets time in miliseconds since epoch.
 double get_timestamp() {
@@ -109,6 +109,13 @@ int main() {
                                                         {4, 355, 1},
                                                         {0, 10, 347}};
 
+	ahrs_alg.settings.gain_normal = 0.0000001;
+
+	/*
+	quaternion_struct product = ahrs_alg.quaternion_product(quaternion_struct {3, 2, 4, 1}, quaternion_struct {1, 3, 5, 2});
+	cout << product.w << "," << product.x << "," << product.y << "," << product.z << endl;
+	*/
+
 	// test_imu(true);
 
 	while (true) {
@@ -119,7 +126,7 @@ int main() {
 		output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
 
 		cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
-		// cout << orientation.orientation.quaterion.x << orientation.orientation.quaterion.y << orientation.orientation.quaterion.z << orientation.orientation.quaterion.w << endl;
+		// cout << orientation.orientation.quaterion.x << "," << orientation.orientation.quaterion.y << "," << orientation.orientation.quaterion.z << "," << orientation.orientation.quaterion.w << endl;
 		// cout << get_timestamp() - timestamp << endl;
 	}
 }

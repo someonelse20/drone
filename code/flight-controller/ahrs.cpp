@@ -39,8 +39,8 @@ quaternion_struct ahrs::quaternion_product(quaternion_struct qa, quaternion_stru
 
 	return_value.w = qa.w * qb.w - qa.x * qb.x - qa.y * qb.y - qa.z * qb.z;
 	return_value.x = qa.w * qb.x + qa.x * qb.w + qa.y * qb.z - qa.z * qb.y;
-	return_value.y = qa.w * qb.y - qa.x * qb.z + qa.y * qb.w - qa.z * qb.x;
-	return_value.z = qa.w * qb.z + qa.x * qb.y + qa.y * qb.x + qa.z * qb.w;
+	return_value.y = qa.w * qb.y - qa.x * qb.z + qa.y * qb.w + qa.z * qb.x;
+	return_value.z = qa.w * qb.z + qa.x * qb.y - qa.y * qb.x + qa.z * qb.w;
 
 	return return_value;
 }
@@ -120,7 +120,7 @@ vector_struct ahrs::subtract_vector(vector_struct va, vector_struct vb) {
 
 double ahrs::get_timestamp() {
   using namespace std::chrono;
-  return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+  return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() / 1000.0;
 }
 
 double ahrs::current_time() {
@@ -181,7 +181,7 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 
 	// initialise 
 	if (current_time() < settings.init_time) 
-		gain = settings.gain_normal + (pow(settings.init_value, -current_time()) / settings.init_value) * (settings.gain_init - settings.gain_normal);
+		gain = settings.gain_normal + (pow(settings.init_time, -current_time()) / settings.init_time) * (settings.gain_init - settings.gain_normal);
 	else
 		gain = settings.gain_normal;
 
@@ -212,6 +212,9 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 
 	// complementary filter
 	vector_struct gyro_error_product = subtract_vector(gyro_conditioned, scale_vector(error, gain));
+
+	// cout << gyro_error_product.x << "," << gyro_error_product.y << "," << gyro_error_product.z << endl;
+
 	quaternion_struct orientation_rate_of_chage = scale_quaternion(quaternion_product(orientation, quaternion_struct {0, gyro_error_product.x, gyro_error_product.y, gyro_error_product.z}), 0.5);
 
 	quaternion_struct orientation_unnormalised = add_quaternion(orientation, scale_quaternion(orientation_rate_of_chage, dt));
