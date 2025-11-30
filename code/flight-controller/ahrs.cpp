@@ -190,6 +190,8 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	vector_struct accel_conditioned = accel_rejection(accel);
 	vector_struct mag_conditioned = mag_rejection(mag);
 
+	cout << gyro_conditioned.x << "," << gyro_conditioned.y << "," << gyro_conditioned.z << endl;
+
 	// error calculation
 	vector_struct accel_normalized = scale_vector(accel_conditioned, 1/vector_norm(accel_conditioned));
 	a_error = cross_product(accel_normalized, vector_struct {(2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y),

@@ -27,7 +27,7 @@ def read_data(file): # Converts raw imu output into a three dementional numpy ar
     return np.array([xaxis, yaxis, zaxis])
 
 def data_average(file):
-    dataset = read_data("g" + file)
+    dataset = read_data("g" + file) 
     return np.array([np.average(dataset[x]), np.average(dataset[y]), np.average(dataset[z])])
 
 def bias_calibration(): # Calculates the mean output of the gyrometer while it is staionary.
@@ -73,7 +73,7 @@ bias = bias_calibration()
 sensitivity = sensitivity_calibration()
 alignment = alignment_calibration(bias, sensitivity)
 print(bias)
-print(sensitivity)
+print(bias)
 print(alignment)
 #test_calibration(bias, sensitivity, np.identity(3))
 

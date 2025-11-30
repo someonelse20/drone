@@ -103,13 +103,13 @@ int main() {
 	// Set ahrs settings.
 	ahrs ahrs_alg;
 
+	/*
 	ahrs_alg.settings.gyro_calibrate.bias = {0.75393149, 1.16563878, -8.15698371};
 	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.82820539, 0.86249338, 0.85730546};
 	ahrs_alg.settings.gyro_calibrate.rotation_matrix = {{347, 8, 13},
                                                         {4, 355, 1},
                                                         {0, 10, 347}};
-
-	ahrs_alg.settings.gain_normal = 0.0000001;
+	*/
 
 	/*
 	quaternion_struct product = ahrs_alg.quaternion_product(quaternion_struct {3, 2, 4, 1}, quaternion_struct {1, 3, 5, 2});
@@ -125,7 +125,7 @@ int main() {
 
 		output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
 
-		cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
+		// cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
 		// cout << orientation.orientation.quaterion.x << "," << orientation.orientation.quaterion.y << "," << orientation.orientation.quaterion.z << "," << orientation.orientation.quaterion.w << endl;
 		// cout << get_timestamp() - timestamp << endl;
 	}
