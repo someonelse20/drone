@@ -1,5 +1,16 @@
 import matplotlib.pyplot as plt
 
+hard_iorn = [-0.04678306, 0.18749608, -0.12834874]
+
+def calibrate(points, axis):
+    
+    return_list = []
+
+    for i in range(len(points)):
+        return_list.append(points[i] - hard_iorn[axis])
+
+    return return_list
+
 def read_file(file):
     xs = []
     ys = []
@@ -12,9 +23,9 @@ def read_file(file):
     for line in rawdata:
         if "mag" in line:
             nums = line.replace("mag:", "").split(",")
-            xs.append(float(nums[0]))
-            ys.append(float(nums[1]))
-            zs.append(float(nums[2]))
+            xs.append(float(nums[0]) - hard_iorn[0])
+            ys.append(float(nums[1]) - hard_iorn[1])
+            zs.append(float(nums[2]) - hard_iorn[2])
 
     return [xs, ys, zs]
 
