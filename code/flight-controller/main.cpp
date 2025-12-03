@@ -110,6 +110,10 @@ int main() {
                                                         {4, 355, 1},
                                                         {0, 10, 347}};
 	*/
+	
+	ahrs_alg.settings.accel_calibrate.bias = {-0.02425592, 0.00482671, 0.00482671};
+	ahrs_alg.settings.accel_calibrate.sensitivity = {1.00154462, 0.99859621, 0.99785103};
+	ahrs_alg.settings.accel_calibrate.rotation_matrix = {{1, 0, 0}, {0, -1, 0}, {0, 0, -1}};
 
 	ahrs_alg.settings.gain_normal = 10;
 	ahrs_alg.settings.gain_init = 30;

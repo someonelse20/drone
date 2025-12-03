@@ -204,7 +204,7 @@ vector_struct ahrs::calibrate_gyro_accel(vector_struct value, matrix_struct alig
 
 	matrix_struct sensitivity_inverse = {{1/sensitivity.x, 0, 0},
                                          {0, 1/sensitivity.y, 0},
-		                                 {0, 0, 1/sensitivity.z}};
+                                         {0, 0, 1/sensitivity.z}};
 
 	calibrated = subtract_vector(value, bias);
 	calibrated = matrix_vector_product(sensitivity_inverse, calibrated);
@@ -221,7 +221,6 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 		start_timestamp = get_timestamp();
 	}
 
-
 	// initialise 
 	if (current_time() < settings.init_time) 
 		gain = settings.gain_normal + (pow(settings.init_time, -current_time()) / settings.init_time) * (settings.gain_init - settings.gain_normal);
@@ -230,12 +229,11 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 
 	// calibrate sensors 
 	vector_struct gyro_calibrated = calibrate_gyro_accel(gyro, settings.gyro_calibrate.rotation_matrix, settings.gyro_calibrate.sensitivity, settings.gyro_calibrate.bias);
-
-	// cout << gyro_calibrated.x << "," << gyro_calibrated.y << "," << gyro_calibrated.z << endl;
+	vector_struct accel_calibrated = calibrate_gyro_accel(accel, settings.accel_calibrate.rotation_matrix, settings.accel_calibrate.sensitivity, settings.accel_calibrate.bias);
 
 	// sensor conditioning
 	vector_struct gyro_conditioned = gyro_bias_compensation(gyro_calibrated);
-	vector_struct accel_conditioned = accel_rejection(accel);
+	vector_struct accel_conditioned = accel_rejection(accel_calibrated);
 	vector_struct mag_conditioned = mag_rejection(mag);
 
 	// cout << gyro_conditioned.x << "," << gyro_conditioned.y << "," << gyro_conditioned.z << endl;
