@@ -103,13 +103,16 @@ int main() {
 	// Set ahrs settings.
 	ahrs ahrs_alg;
 
+	ahrs_alg.settings.gyro_calibrate.bias = {2.93716433, 0.08483891, 0.71578982};
+	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.8409687, 0.87876116, 0.87530723};
 	/*
-	ahrs_alg.settings.gyro_calibrate.bias = {0.75393149, 1.16563878, -8.15698371};
-	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.82820539, 0.86249338, 0.85730546};
 	ahrs_alg.settings.gyro_calibrate.rotation_matrix = {{347, 8, 13},
                                                         {4, 355, 1},
                                                         {0, 10, 347}};
 	*/
+
+	ahrs_alg.settings.gain_normal = 10;
+	ahrs_alg.settings.gain_init = 30;
 
 	/*
 	quaternion_struct product = ahrs_alg.quaternion_product(quaternion_struct {3, 2, 4, 1}, quaternion_struct {1, 3, 5, 2});
@@ -123,9 +126,10 @@ int main() {
 
 		imu_data imu_readings = read_imu();
 
-		output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
+		// output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
+		output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, {0, 0, 0}, dt);
 
-		// cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
+		cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
 		// cout << orientation.orientation.quaterion.x << "," << orientation.orientation.quaterion.y << "," << orientation.orientation.quaterion.z << "," << orientation.orientation.quaterion.w << endl;
 		// cout << get_timestamp() - timestamp << endl;
 	}

@@ -44,7 +44,7 @@ def sensitivity_calibration(): # Calculates the average magnitude of each axis w
 
     return sensitivity
 
-def alignment_calibration(bias, sensitivity): # Calculatges the alignment of the gyrometer as a rotation matrix. DOES NOT WORK
+def alignment_calibration(bias, sensitivity): # Calculatges the alignment of the gyrometer as a rotation matrix. FIX BY NORMALIZING ALIGNMENT, PROBABLY BY NORMALIZING EACH VECTOR.
     alignment = np.array([[0,0,0],[0,0,0],[0,0,0]])#, dtype=float)
     sensitivity_matrix = np.array([[1/sensitivity[x], 0, 0], [0, 1/sensitivity[y], 0], [0, 0, 1/sensitivity[z]]])
 
@@ -54,7 +54,7 @@ def alignment_calibration(bias, sensitivity): # Calculatges the alignment of the
         for column in range(3):
             alignment[column, row] = la.norm(np.dot(sensitivity_matrix, (averages[column] - bias[column])))
 
-    return alignment
+    return alignment.transpose()
 
 def test_calibration(bias, sensitivity, alignment):
     sensitivity_matrix = np.array([[1/sensitivity[x], 0, 0], [0, 1/sensitivity[y], 0], [0, 0, 1/sensitivity[z]]])
@@ -74,12 +74,35 @@ def test_calibration(bias, sensitivity, alignment):
     print(test_value)
     print(alignment)
 
+def print_calibrated_output(raw_data, bias, sensitivity, alignment):
+    # Create sensitivity matrix (diagonal matrix)
+    sensitivity_matrix = np.diag(1/sensitivity)
+    
+    # Apply calibration equation: ω = CΩR * Sω⁻¹ * (uω - bω)
+    # First subtract bias
+    data_minus_bias = raw_data - bias
+    
+    # Then multiply by inverse sensitivity matrix
+    scaled_data = np.dot(sensitivity_matrix, data_minus_bias)
+    
+    # Finally apply alignment matrix
+    calibrated_output = np.dot(alignment, scaled_data)
+    
+    print("Calibrated angular velocity:")
+    print(f"ωx: {calibrated_output[0]:.6f} deg/s")
+    print(f"ωy: {calibrated_output[1]:.6f} deg/s")
+    print(f"ωz: {calibrated_output[2]:.6f} deg/s")
+    
+    return calibrated_output
+
 bias = bias_calibration()
-#print(bias)
+print(bias)
 sensitivity = sensitivity_calibration()
-#print(sensitivity)
+print(sensitivity)
 alignment = alignment_calibration(bias, sensitivity)
 #print(alignment)
-test_calibration(bias, sensitivity, alignment)
-#test_calibration(bias, sensitivity, np.identity(3))
+#test_calibration(bias, sensitivity, alignment)
+normed_alignment = np.array([[0.9995790,0.0019301,-0.0289514],[-0.0019301,0.9999982,0.0000279],[0.0289514,0.0000279,0.9995808]])
+#print_calibrated_output(data_average("x+"), bias, sensitivity, np.identity(3))
+#print_calibrated_output(data_average("x+"), bias, sensitivity, normed_alignment)
 

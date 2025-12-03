@@ -118,6 +118,35 @@ vector_struct ahrs::subtract_vector(vector_struct va, vector_struct vb) {
 	return return_value;
 }
 
+vector_struct ahrs::matrix_vector_product(matrix_struct m, vector_struct v) {
+	vector_struct return_value;
+
+	// return_value.x = v.x * m.x.x + v.y * m.x.y + v.z * m.x.z;
+	return_value.x = m.x.x * v.x + m.x.y * v.y + m.x.z * v.z;
+	return_value.y = m.y.x * v.x + m.y.y * v.y + m.y.z * v.z;
+	return_value.z = m.z.x * v.x + m.z.y * v.y + m.z.z * v.z;
+
+	return return_value;
+}
+
+matrix_struct ahrs::matrix_product(matrix_struct ma, matrix_struct mb) {
+	matrix_struct return_value;
+
+	return_value.x.x = ma.x.x * mb.x.x + ma.x.y * mb.y.x + ma.x.z * mb.z.x;
+	return_value.x.y = ma.x.x * mb.x.y + ma.x.y * mb.y.y + ma.x.z * mb.z.y;
+	return_value.x.z = ma.x.x * mb.x.z + ma.x.y * mb.y.z + ma.x.z * mb.z.z;
+
+	return_value.y.x = ma.y.x * mb.x.x + ma.y.y * mb.y.x + ma.y.z * mb.z.x;
+	return_value.y.y = ma.y.x * mb.x.y + ma.y.y * mb.y.y + ma.y.z * mb.z.y;
+	return_value.y.z = ma.y.x * mb.x.z + ma.y.y * mb.y.z + ma.y.z * mb.z.z;
+
+	return_value.z.x = ma.z.x * mb.x.x + ma.z.y * mb.y.x + ma.z.z * mb.z.x;
+	return_value.z.y = ma.z.x * mb.x.y + ma.z.y * mb.y.y + ma.z.z * mb.z.y;
+	return_value.z.z = ma.z.x * mb.x.z + ma.z.y * mb.y.z + ma.z.z * mb.z.z;
+
+	return return_value;
+}
+
 double ahrs::get_timestamp() {
   using namespace std::chrono;
   return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() / 1000.0;
@@ -170,6 +199,20 @@ vector_struct ahrs::accel_rejection(vector_struct accel){
 	}
 }
 
+vector_struct ahrs::calibrate_gyro_accel(vector_struct value, matrix_struct alignment, vector_struct sensitivity, vector_struct bias) {
+	vector_struct calibrated;
+
+	matrix_struct sensitivity_inverse = {{1/sensitivity.x, 0, 0},
+                                         {0, 1/sensitivity.y, 0},
+		                                 {0, 0, 1/sensitivity.z}};
+
+	calibrated = subtract_vector(value, bias);
+	calibrated = matrix_vector_product(sensitivity_inverse, calibrated);
+	calibrated = matrix_vector_product(alignment, calibrated);
+
+	return calibrated;
+}
+
 output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struct mag, double dt) {
 	output_struct return_outputs;
 
@@ -185,12 +228,17 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	else
 		gain = settings.gain_normal;
 
+	// calibrate sensors 
+	vector_struct gyro_calibrated = calibrate_gyro_accel(gyro, settings.gyro_calibrate.rotation_matrix, settings.gyro_calibrate.sensitivity, settings.gyro_calibrate.bias);
+
+	// cout << gyro_calibrated.x << "," << gyro_calibrated.y << "," << gyro_calibrated.z << endl;
+
 	// sensor conditioning
-	vector_struct gyro_conditioned = gyro_bias_compensation(gyro);
+	vector_struct gyro_conditioned = gyro_bias_compensation(gyro_calibrated);
 	vector_struct accel_conditioned = accel_rejection(accel);
 	vector_struct mag_conditioned = mag_rejection(mag);
 
-	cout << gyro_conditioned.x << "," << gyro_conditioned.y << "," << gyro_conditioned.z << endl;
+	// cout << gyro_conditioned.x << "," << gyro_conditioned.y << "," << gyro_conditioned.z << endl;
 
 	// error calculation
 	vector_struct accel_normalized = scale_vector(accel_conditioned, 1/vector_norm(accel_conditioned));

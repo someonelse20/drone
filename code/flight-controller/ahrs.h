@@ -41,11 +41,11 @@ struct output_struct {
 };
 
 struct calibrate {
-	matrix_struct rotation_matrix;
-	vector_struct sensitivity;
-	vector_struct bias;
-	matrix_struct soft_iorn;
-	vector_struct hard_iorn;
+	matrix_struct rotation_matrix = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+	vector_struct sensitivity = {0, 0, 0};
+	vector_struct bias = {0, 0, 0};
+	matrix_struct soft_iorn = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+	vector_struct hard_iorn = {0, 0, 0};
 };
 
 struct settings_struct{
@@ -201,6 +201,12 @@ class ahrs {
 	// Subtracts two vectors.
 	vector_struct subtract_vector(vector_struct va, vector_struct vb);
 
+	// Calculates the product of a matrix and a vector.
+	vector_struct matrix_vector_product(matrix_struct m, vector_struct v);
+
+	// Calculates the product of two matrices.
+	matrix_struct matrix_product(matrix_struct ma, matrix_struct mb);
+
 	// Gets time in seconds since epoch.
 	double get_timestamp();
 
@@ -215,6 +221,12 @@ class ahrs {
 
 	// Ignores accelerometer readings when accelerating too much and the accelerometer is unreliable.
 	vector_struct accel_rejection(vector_struct accel);
+
+	// Calibrates the gyrometer and the accelerometer based off pre-calculated values.
+	vector_struct calibrate_gyro_accel(vector_struct value, matrix_struct alignment, vector_struct sensitivity, vector_struct bias);
+
+	// Calibrates the magnetometer based off pre-calculated values.
+	vector_struct calibrate_mag(vector_struct mag, matrix_struct soft_iorn, vector_struct hard_iorn);
 
 	output_struct update(vector_struct gyro, vector_struct accel, vector_struct, double dt);
 
