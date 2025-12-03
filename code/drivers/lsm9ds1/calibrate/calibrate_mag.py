@@ -40,7 +40,7 @@ def offset_calibration():
     #h = np.dot(np.dot(la.inv(np.dot(M.transpose(), M)), M.transpose()), v)
     h = np.dot(la.pinv(M), v)
 
-    print(np.allclose(np.dot(np.dot(M, la.pinv(M)),v), v))
+    #print(np.allclose(np.dot(np.dot(M, la.pinv(M)),v), v))
 
     #print(h)
 
@@ -50,5 +50,5 @@ def offset_calibration():
     return np.array([h[0], h[2], h[4]])
 
 offset = offset_calibration()
-#print(offset)
+print(offset)
 

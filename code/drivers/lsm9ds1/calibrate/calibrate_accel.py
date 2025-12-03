@@ -7,7 +7,7 @@ z = 2
 
 axes = ["x", "y", "z"]
 
-REFERENCE_GRAVITATIONAL_VELOCITY = 200 # Reference angular velocity in degrees per second.
+REFERENCE_GRAVITATIONAL_VELOCITY = 1 #9.80665 # Reference angular velocity in degrees per second.
 
 def read_data(file): # Converts raw imu output into a three dementional numpy array of the gyrometer data.
     xaxis = []
