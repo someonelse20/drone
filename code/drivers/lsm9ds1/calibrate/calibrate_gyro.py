@@ -30,8 +30,9 @@ def data_average(file):
     dataset = read_data("g" + file) 
     return np.array([np.average(dataset[x]), np.average(dataset[y]), np.average(dataset[z])])
 
-def bias_calibration(): # Calculates the mean output of the gyrometer while it is staionary.
-    return data_average("b")
+def bias_calibration(file="az-"): # Calculates the mean output of the gyrometer while it is staionary.
+    dataset = read_data(file) 
+    return np.array([np.average(dataset[x]), np.average(dataset[y]), np.average(dataset[z])])
 
 def sensitivity_calibration(): # Calculates the average magnitude of each axis when exposed to a reference angular velocity.
     sensitivity = np.array([], dtype=float)
@@ -58,22 +59,27 @@ def alignment_calibration(bias, sensitivity): # Calculatges the alignment of the
 def test_calibration(bias, sensitivity, alignment):
     sensitivity_matrix = np.array([[1/sensitivity[x], 0, 0], [0, 1/sensitivity[y], 0], [0, 0, 1/sensitivity[z]]])
 
-    not_moving = data_average("b")
+    dataset = read_data("az-") 
+    not_moving = np.array([np.average(dataset[x]), np.average(dataset[y]), np.average(dataset[z])])
     moving = data_average("x+")
 
-    not_moving_value = alignment * sensitivity_matrix.transpose() * (np.array([[not_moving[x]], [not_moving[y]], [not_moving[z]]]) - np.array([[bias[x]], [bias[y]], [bias[z]]]))
-    moving_value = np.dot(alignment, np.dot(sensitivity_matrix.transpose(), (np.array([[moving[x] - bias[x]], [moving[y] - bias[y]], [moving[z] - bias[z]]]))))
+    # not_moving_value = alignment * sensitivity_matrix.transpose() * (np.array([[not_moving[x]], [not_moving[y]], [not_moving[z]]]) - np.array([[bias[x]], [bias[y]], [bias[z]]]))
+    # moving_value = alignment * sensitivity_matrix.transpose() * (np.array([[moving[x]], [moving[y]], [moving[z]]]) - np.array([[bias[x]], [bias[y]], [bias[z]]]))
+    not_moving_value = np.dot(alignment, np.dot(sensitivity_matrix, (np.array([[not_moving[x] - bias[x]], [not_moving[y] - bias[y]], [not_moving[z] - bias[z]]]))))
+    moving_value = np.dot(alignment, np.dot(sensitivity_matrix, (np.array([[moving[x] - bias[x]], [moving[y] - bias[y]], [moving[z] - bias[z]]]))))
     test_value = np.dot(sensitivity_matrix, (np.array([[moving[x] - bias[x]], [moving[y] - bias[y]], [moving[z] - bias[z]]])))
 
     print(not_moving_value)
     print(moving_value)
-    #print(test_value)
+    print(test_value)
+    print(alignment)
 
 bias = bias_calibration()
+#print(bias)
 sensitivity = sensitivity_calibration()
+#print(sensitivity)
 alignment = alignment_calibration(bias, sensitivity)
-print(bias)
-print(bias)
-print(alignment)
+#print(alignment)
+test_calibration(bias, sensitivity, alignment)
 #test_calibration(bias, sensitivity, np.identity(3))
 
