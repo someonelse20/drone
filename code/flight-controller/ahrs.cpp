@@ -1,7 +1,7 @@
 #include <cmath>
 #include <chrono>
 #include "ahrs.h"
-// #include <iostream>
+#include <iostream>
 
 using namespace std;
 
@@ -272,8 +272,6 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	vector_struct accel_conditioned = accel_rejection(accel_calibrated, &return_outputs.accel_rejected);
 	vector_struct mag_conditioned = mag_rejection(mag_calibrated, &return_outputs.mag_rejected);
 
-	// cout << gyro_conditioned.x << "," << gyro_conditioned.y << "," << gyro_conditioned.z << endl;
-
 	// error calculation
 	vector_struct accel_normalized = scale_vector(accel_conditioned, 1/vector_norm(accel_conditioned));
 	a_error = cross_product(accel_normalized, vector_struct {(2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y),
@@ -291,13 +289,8 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	else 
 		error = vector_struct {0, 0, 0};
 
-	// cout << a_error.x << "," << a_error.y << "," << a_error.z << endl;
-	// cout << error.x << "," << error.y << "," << error.z << endl;
-
 	// complementary filter
 	vector_struct gyro_error_product = subtract_vector(gyro_conditioned, scale_vector(error, gain));
-
-	// cout << gyro_error_product.x << "," << gyro_error_product.y << "," << gyro_error_product.z << endl;
 
 	quaternion_struct orientation_rate_of_chage = scale_quaternion(quaternion_product(orientation, quaternion_struct {0, gyro_error_product.x, gyro_error_product.y, gyro_error_product.z}), 0.5);
 

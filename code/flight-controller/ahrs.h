@@ -34,11 +34,11 @@ struct output_struct {
 };
 
 struct calibrate {
-	matrix_struct rotation_matrix = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-	vector_struct sensitivity = {0, 0, 0};
-	vector_struct bias = {0, 0, 0};
-	matrix_struct soft_iorn = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-	vector_struct hard_iorn = {0, 0, 0};
+	matrix_struct rotation_matrix = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
+	vector_struct sensitivity = {0.0, 0.0, 0.0};
+	vector_struct bias = {0.0, 0.0, 0.0};
+	matrix_struct soft_iorn = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
+	vector_struct hard_iorn = {0.0, 0.0, 0.0};
 };
 
 struct settings_struct{
@@ -52,7 +52,7 @@ struct settings_struct{
 	bool add_declination = true;
 
 	double accel_rejection=0.1; // Acceleration in g that the accelerometer should be considered unreliable.
-	double accel_rejection_t=1000; // Time in ms that acceleration > accel_rejection after which the accelerometer will be rejected.
+	double accel_rejection_t=0.1; // Time in secconds that acceleration > accel_rejection after which the accelerometer will be rejected.
 	
 	calibrate gyro_calibrate;
 	calibrate accel_calibrate;
@@ -77,16 +77,16 @@ class ahrs {
 	// ---------------------------------------- VARIABLES ----------------------------------------
 
 	// Orientation as a quaterion. Starts at no rotation.
-	quaternion_struct orientation = {1, 0, 0, 0}; 
+	quaternion_struct orientation = {1.0, 0.0, 0.0, 0.0}; 
 
 	// Total error of the algorithm.
-	vector_struct error = {0, 0, 0};
+	vector_struct error = {0.0, 0.0, 0.0};
 
 	// Error of the gyrometer from accelerometer.
-	vector_struct a_error = {0, 0, 0};
+	vector_struct a_error = {0.0, 0.0, 0.0};
 
 	// Error of the gyrometer from the magnetometer. 
-	vector_struct m_error = {0, 0, 0};
+	vector_struct m_error = {0.0, 0.0, 0.0};
 
 	// Gain of the algorithm, changes as the algorithm initializes.
 	double gain;
@@ -98,67 +98,13 @@ class ahrs {
 	double accel_t;
 
 	// Timestamp used for calculating accel_t.
-	double accel_t_timestamp = 0;
+	double accel_t_timestamp = 0.0;
 
 	public:
-
-	// ---------------------------------------- STRUCTS ----------------------------------------
-
-	/*
-	struct quaternion_struct {
-		double w, x, y, z;
-	};
-
-	struct vector_struct {
-		double x, y, z;
-	};
-
-	struct orientation_struct {
-		quaternion_struct quaterion;
-		vector_struct euler;
-	};
-
-	struct acceleration_struct {
-		vector_struct zero;
-		vector_struct global;
-	};
-
-	struct output_struct {
-		orientation_struct orientation; // Orientation of the IMU relative to the earth.
-		orientation_struct orientation_earth_frame; // Orientation of the earth relative to the IMU, the default output of the algorithm.
-		acceleration_struct acceleration;
-	};
-
-	struct calibrate {
-		double rotation_matrix[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
-		double sensitivity[3] = {0, 0, 0};
-		double soft_iorn[3][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
-		double hard_iorn[3] = {0, 0, 0};
-	};
-
-	struct settings_struct{
-		double gain_normal=0.5;
-		double gain_init=10;
-		double init_time=300; // Time the algorithm is initializing in miliseconds.
-
-		double min_mag_distortion=0.22;
-		double max_mag_distoriton=0.67;
-
-		double accel_rejection=0.1; // Acceleration in g that the accelerometer should be considered unreliable.
-		double accel_rejection_t=100; // Time in ms that acceleration > accel_rejection after which the accelerometer will be rejected.
-
-		calibrate gyro_calibrate;
-		calibrate accel_calibrate;
-		calibrate mag_calibrate;
-	};
-	*/
 
 	settings_struct settings;
 
 	// ---------------------------------------- FUNCTIONS ----------------------------------------
-
-	// Calculates normal of array.
-	// double norm(std::vector<double> v);
 
 	// Calculates normal of an euler angle.
 	double vector_norm(vector_struct e);
@@ -166,10 +112,10 @@ class ahrs {
 	// Calculates normal of a quaternion.
 	double quaternion_norm(quaternion_struct q);
 
-	// Converts quaterion to euler angle.
+	// Converts quaterion to euler angle in degrees.
 	vector_struct quaternion_to_euler(quaternion_struct q);
 
-	// Converts euler angle to quaternion.
+	// Converts euler angle in radians to quaternion.
 	quaternion_struct euler_to_quaternion(vector_struct v);
 
 	// Calculates conjugate of quaterion.
@@ -227,14 +173,6 @@ class ahrs {
 	vector_struct calibrate_mag(vector_struct mag, matrix_struct alignment, matrix_struct soft_iorn, vector_struct hard_iorn);
 
 	output_struct update(vector_struct gyro, vector_struct accel, vector_struct, double dt);
-
-	// ahrs(settings_struct settings_to_set);
 };
-
-/*
-void set_settings(settings_struct new_settings);
-
-output_struct update(double gyro[3], double accel[3], double mag[3], double sample_period);
-*/
 
 #endif

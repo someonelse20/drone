@@ -93,11 +93,6 @@ void test_imu(bool loop=false) { // If loop = true then this function will loop 
 	}
 }
 
-// Updates orientation using ahrs algoritm. See ahrs.h and ahrs.cpp.
-output_struct update_orientation(ahrs ahrs_alg, imu_data data) {
-	return ahrs_alg.update(data.gyro, data.accel, data.mag, dt);
-}
-
 int main() {
 	imu_init();
 
@@ -106,22 +101,20 @@ int main() {
 
 	ahrs_alg.settings.gyro_calibrate.bias = {2.93716433, 0.08483891, 0.71578982};
 	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.8409687, 0.87876116, 0.87530723};
-	/*
-	ahrs_alg.settings.gyro_calibrate.rotation_matrix = {{347, 8, 13},
-                                                        {4, 355, 1},
-                                                        {0, 10, 347}};
-	*/
 	
 	ahrs_alg.settings.accel_calibrate.bias = {-0.02425592, 0.00482671, 0.00482671};
 	ahrs_alg.settings.accel_calibrate.sensitivity = {1.00154462, 0.99859621, 0.99785103};
-	ahrs_alg.settings.accel_calibrate.rotation_matrix = {{1, 0, 0}, {0, -1, 0}, {0, 0, -1}};
+	ahrs_alg.settings.accel_calibrate.rotation_matrix = {{1.0, 0.0, 0.0}, {0.0, -1.0, 0.0}, {0.0, 0.0, -1.0}};
 
 	ahrs_alg.settings.mag_calibrate.hard_iorn = {-0.04678306, 0.18749608, -0.12834874};
-	ahrs_alg.settings.mag_calibrate.rotation_matrix = {{0, 1, 0}, {-1, 0, 0}, {0, 0, 1}};
+	ahrs_alg.settings.mag_calibrate.rotation_matrix = {{0.0, 1.0, 0.0}, {-1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}};
 
-	ahrs_alg.settings.gain_normal = 10;
-	ahrs_alg.settings.gain_init = 30;
+	ahrs_alg.settings.accel_rejection_t = 0.5;
 
+	ahrs_alg.settings.gain_normal = 10.0;
+	ahrs_alg.settings.gain_init = 30.0;
+
+	ahrs_alg.settings.declination = 5.55;
 	ahrs_alg.settings.add_declination = true;
 
 	// test_imu(true);
@@ -132,10 +125,8 @@ int main() {
 		imu_data imu_readings = read_imu();
 
 		output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
-		// output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, {0, 0, 0}, dt);
 
-		// cout << orientation.orientation.euler.z << endl;
-		cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
+		// cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
 		// cout << orientation.orientation.quaterion.x << "," << orientation.orientation.quaterion.y << "," << orientation.orientation.quaterion.z << "," << orientation.orientation.quaterion.w << endl;
 		// cout << get_timestamp() - timestamp << endl;
 	}
