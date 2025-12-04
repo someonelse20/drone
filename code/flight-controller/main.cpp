@@ -118,7 +118,7 @@ int main() {
 	ahrs_alg.settings.gain_normal = 5.0;
 	ahrs_alg.settings.gain_init = 30.0;
 
-	ahrs_alg.settings.declination = 5.55; // 15.2;
+	ahrs_alg.settings.declination = 0.0; // 15.2;
 	ahrs_alg.settings.add_declination = true;
 
 	// test_imu(true);
@@ -132,6 +132,7 @@ int main() {
 
 		cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
 		// cout << orientation.orientation.quaterion.x << "," << orientation.orientation.quaterion.y << "," << orientation.orientation.quaterion.z << "," << orientation.orientation.quaterion.w << endl;
+		//cout << orientation.acceleration.global.x << "," << orientation.acceleration.global.y << "," << orientation.acceleration.global.z << endl;
 
 		dt = ahrs_alg.get_timestamp() - timestamp;
 		//cout << dt << endl;
