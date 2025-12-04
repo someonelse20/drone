@@ -18,7 +18,7 @@ struct imu_data {
 
 LSM9DS1 imu(IMU_MODE_I2C, 0x6b, 0x1e);
 
-double dt = 0.027; // Deltatime in miliseconds.
+double dt = 0.013; // Deltatime in miliseconds.
 
 // Gets time in miliseconds since epoch.
 double get_timestamp() {
@@ -70,6 +70,10 @@ imu_data read_imu() {
 	return data;
 }
 
+vector_struct gyro_calibrate() {
+	return read_imu().gyro;
+}
+
 // Prints LSM9DS1 readings to stout.
 void test_imu(bool loop=false) { // If loop = true then this function will loop while true. loop = false to disable (default).
 	imu_init();
@@ -99,7 +103,7 @@ int main() {
 	// Set ahrs settings.
 	ahrs ahrs_alg;
 
-	ahrs_alg.settings.gyro_calibrate.bias = {2.93716433, 0.08483891, 0.71578982};
+	ahrs_alg.settings.gyro_calibrate.bias = ahrs_alg.gyro_bias_calibration(1, &gyro_calibrate); //{2.93716433, 0.08483891, 0.71578982};
 	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.8409687, 0.87876116, 0.87530723};
 	
 	ahrs_alg.settings.accel_calibrate.bias = {-0.02425592, 0.00482671, 0.00482671};
@@ -111,24 +115,26 @@ int main() {
 
 	ahrs_alg.settings.accel_rejection_t = 0.5;
 
-	ahrs_alg.settings.gain_normal = 10.0;
+	ahrs_alg.settings.gain_normal = 5.0;
 	ahrs_alg.settings.gain_init = 30.0;
 
-	ahrs_alg.settings.declination = 5.55;
+	ahrs_alg.settings.declination = 5.55; // 15.2;
 	ahrs_alg.settings.add_declination = true;
 
 	// test_imu(true);
 
 	while (true) {
-		double timestamp = get_timestamp();
+		double timestamp = ahrs_alg.get_timestamp();
 
 		imu_data imu_readings = read_imu();
 
 		output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
 
-		// cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
+		cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
 		// cout << orientation.orientation.quaterion.x << "," << orientation.orientation.quaterion.y << "," << orientation.orientation.quaterion.z << "," << orientation.orientation.quaterion.w << endl;
-		// cout << get_timestamp() - timestamp << endl;
+
+		dt = ahrs_alg.get_timestamp() - timestamp;
+		//cout << dt << endl;
 	}
 }
 

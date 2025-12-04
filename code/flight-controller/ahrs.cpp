@@ -1,7 +1,8 @@
-#include <cmath>
 #include <chrono>
+#include <cmath>
 #include "ahrs.h"
 #include <iostream>
+// #include <algorithm>
 
 using namespace std;
 
@@ -175,8 +176,8 @@ double ahrs::current_time() {
 	return get_timestamp() - start_timestamp;
 }
 
-vector_struct ahrs::gyro_bias_compensation(vector_struct gyro) { // Possibly replace with low pass filter.
-	return gyro;
+vector_struct ahrs::low_pass_filter(vector_struct v) { // Add low pass filter.
+	return v;
 }
 
 vector_struct ahrs::mag_rejection(vector_struct mag, bool* mag_rejected) {
@@ -248,6 +249,25 @@ vector_struct ahrs::calibrate_mag(vector_struct mag, matrix_struct alignment, ma
 	return calibrated;
 }
 
+vector_struct ahrs::gyro_bias_calibration(double time, vector_struct (*gyro_function)()) {
+	double timestamp = get_timestamp();
+
+	double x_avg = 0.0, y_avg = 0.0, z_avg = 0.0;
+	int len = 0;
+
+	while (get_timestamp() <= timestamp + time) {
+		vector_struct gyro_data = gyro_function();
+
+		x_avg += gyro_data.x;
+		y_avg += gyro_data.y;
+		z_avg += gyro_data.z;
+
+		len++;
+	}
+
+	return {x_avg / len, y_avg / len, z_avg / len};
+}
+
 output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struct mag, double dt) {
 	output_struct return_outputs;
 
@@ -268,7 +288,7 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	vector_struct mag_calibrated = calibrate_mag(mag, settings.mag_calibrate.rotation_matrix, settings.mag_calibrate.soft_iorn, settings.mag_calibrate.hard_iorn);
 
 	// sensor conditioning
-	vector_struct gyro_conditioned = gyro_bias_compensation(gyro_calibrated);
+	vector_struct gyro_conditioned = low_pass_filter(gyro_calibrated);
 	vector_struct accel_conditioned = accel_rejection(accel_calibrated, &return_outputs.accel_rejected);
 	vector_struct mag_conditioned = mag_rejection(mag_calibrated, &return_outputs.mag_rejected);
 

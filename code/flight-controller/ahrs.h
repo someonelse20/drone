@@ -157,8 +157,8 @@ class ahrs {
 	// Gets current time by subtracting time since epoch by the time the algorithm started.
 	double current_time();
 
-	// Currently returns input. Will eventualy replace with some sort of low pass filter.
-	vector_struct gyro_bias_compensation(vector_struct gyro);
+	// Low pass filter for gyroscope.
+	vector_struct low_pass_filter(vector_struct v);
 
 	// Ignores magnetometer readings when the magnetometer variation is too high and unreliable.
 	vector_struct mag_rejection(vector_struct mag, bool* mag_rejected);
@@ -171,6 +171,9 @@ class ahrs {
 
 	// Calibrates the magnetometer based off pre-calculated values.
 	vector_struct calibrate_mag(vector_struct mag, matrix_struct alignment, matrix_struct soft_iorn, vector_struct hard_iorn);
+
+	// Gets bias calibration with a set amout of time the system is stationary.
+	vector_struct gyro_bias_calibration(double time, vector_struct (*gyro_function)());
 
 	output_struct update(vector_struct gyro, vector_struct accel, vector_struct, double dt);
 };
