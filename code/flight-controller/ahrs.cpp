@@ -1,7 +1,7 @@
 #include <cmath>
 #include <chrono>
 #include "ahrs.h"
-#include <iostream>
+// #include <iostream>
 
 using namespace std;
 
@@ -19,6 +19,25 @@ vector_struct ahrs::quaternion_to_euler(quaternion_struct q) {
 	return_value.x = atan2(2 * (q.y * q.z - q.w * q.x), 2 * pow(q.w, 2) - 1 + 2 * pow(q.z, 2)) * 180.0 / M_PI,
 	return_value.y = -asin(2 * (q.x * q.z + q.w * q.y)) * 180.0 / M_PI,
 	return_value.z = atan2(2 * (q.x * q.y - q.w * q.z), 2 * pow(q.w, 2) - 1 + 2 * pow(q.x, 2)) * 180.0 / M_PI;
+
+	return return_value;
+}
+
+quaternion_struct ahrs::euler_to_quaternion(vector_struct v) {
+	quaternion_struct return_value;
+
+	// abbreviations for the various angular functions
+	double cr = cos(v.x * 0.5);
+	double sr = sin(v.x * 0.5);
+	double cp = cos(v.y * 0.5);
+	double sp = sin(v.y * 0.5);
+	double cy = cos(v.z * 0.5);
+	double sy = sin(v.z * 0.5);
+
+	return_value.w = cr * cp * cy + sr * sp * sy;
+	return_value.x = sr * cp * cy - cr * sp * sy;
+	return_value.y = cr * sp * cy + sr * cp * sy;
+	return_value.z = cr * cp * sy - sr * sp * cy;
 
 	return return_value;
 }
@@ -160,10 +179,17 @@ vector_struct ahrs::gyro_bias_compensation(vector_struct gyro) { // Possibly rep
 	return gyro;
 }
 
-vector_struct ahrs::mag_rejection(vector_struct mag) {
-	vector_norm(mag);
-	if (-settings.min_mag_distortion < vector_norm(mag) && vector_norm(mag) < settings.max_mag_distoriton) {
+vector_struct ahrs::mag_rejection(vector_struct mag, bool* mag_rejected) {
+	double mag_distortion = vector_norm(mag);
+
+	if (mag_distortion > settings.min_mag_distortion && mag_distortion < settings.max_mag_distoriton) {
+		*mag_rejected = false;
+		return mag;
+	}
+	else {
 		vector_struct return_value;
+
+		*mag_rejected = true;
 
 		return_value.x = 0;
 		return_value.y = 0;
@@ -171,12 +197,9 @@ vector_struct ahrs::mag_rejection(vector_struct mag) {
 
 		return return_value;
 	}
-	else {
-		return mag;
-	}
 }
 
-vector_struct ahrs::accel_rejection(vector_struct accel){ 
+vector_struct ahrs::accel_rejection(vector_struct accel, bool* accel_rejected){ 
 	// calculate the amount of time that the accelerometer measurment is unreliable
 	if (accel_t_timestamp == 0)
 		accel_t_timestamp = get_timestamp();
@@ -188,6 +211,7 @@ vector_struct ahrs::accel_rejection(vector_struct accel){
 	if (accel_t > settings.accel_rejection_t) {
 		vector_struct return_value;
 
+		*accel_rejected = true;
 		return_value.x = 0;
 		return_value.y = 0;
 		return_value.z = 0;
@@ -195,6 +219,7 @@ vector_struct ahrs::accel_rejection(vector_struct accel){
 		return return_value;
 	}
 	else {
+		*accel_rejected = false;
 		return accel;
 	}
 }
@@ -208,6 +233,16 @@ vector_struct ahrs::calibrate_gyro_accel(vector_struct value, matrix_struct alig
 
 	calibrated = subtract_vector(value, bias);
 	calibrated = matrix_vector_product(sensitivity_inverse, calibrated);
+	calibrated = matrix_vector_product(alignment, calibrated);
+
+	return calibrated;
+}
+
+vector_struct ahrs::calibrate_mag(vector_struct mag, matrix_struct alignment, matrix_struct soft_iorn, vector_struct hard_iorn) {
+	vector_struct calibrated;
+
+	calibrated = matrix_vector_product(soft_iorn, mag);
+	calibrated = subtract_vector(calibrated, hard_iorn);
 	calibrated = matrix_vector_product(alignment, calibrated);
 
 	return calibrated;
@@ -230,11 +265,12 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	// calibrate sensors 
 	vector_struct gyro_calibrated = calibrate_gyro_accel(gyro, settings.gyro_calibrate.rotation_matrix, settings.gyro_calibrate.sensitivity, settings.gyro_calibrate.bias);
 	vector_struct accel_calibrated = calibrate_gyro_accel(accel, settings.accel_calibrate.rotation_matrix, settings.accel_calibrate.sensitivity, settings.accel_calibrate.bias);
+	vector_struct mag_calibrated = calibrate_mag(mag, settings.mag_calibrate.rotation_matrix, settings.mag_calibrate.soft_iorn, settings.mag_calibrate.hard_iorn);
 
 	// sensor conditioning
 	vector_struct gyro_conditioned = gyro_bias_compensation(gyro_calibrated);
-	vector_struct accel_conditioned = accel_rejection(accel_calibrated);
-	vector_struct mag_conditioned = mag_rejection(mag);
+	vector_struct accel_conditioned = accel_rejection(accel_calibrated, &return_outputs.accel_rejected);
+	vector_struct mag_conditioned = mag_rejection(mag_calibrated, &return_outputs.mag_rejected);
 
 	// cout << gyro_conditioned.x << "," << gyro_conditioned.y << "," << gyro_conditioned.z << endl;
 
@@ -268,6 +304,14 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	quaternion_struct orientation_unnormalised = add_quaternion(orientation, scale_quaternion(orientation_rate_of_chage, dt));
 	orientation = scale_quaternion(orientation_unnormalised, 1 / quaternion_norm(orientation_unnormalised));
 
+	// adding declination
+	quaternion_struct orientation_declination = orientation;
+
+	if (settings.add_declination) {
+		quaternion_struct declination = euler_to_quaternion({0, 0, settings.declination * (M_PI / 180)});
+		orientation_declination = quaternion_product(orientation, declination);
+	}
+
 	// zero g acceleration calculation (Don't use the rejected acceleration results here.)
 	vector_struct acceleration_zero = subtract_vector(accel, vector_struct {2 * orientation.x * orientation.z - 2 * orientation.w * orientation.y,
 	                                                                          2 * orientation.y * orientation.z + 2 * orientation.w * orientation.x,
@@ -278,13 +322,13 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	vector_struct acceleration_global = vector_struct {acceleration_global_quaternion.x, acceleration_global_quaternion.y, acceleration_global_quaternion.z};
 
 	// return value definition
-	return_outputs.orientation_earth_frame.quaterion = orientation;
+	return_outputs.orientation_earth_frame.quaterion = orientation_declination;
 
-	return_outputs.orientation.quaterion = orientation_global;
+	return_outputs.orientation.quaterion = quaternion_conjugate(orientation_declination);
 
-	return_outputs.orientation_earth_frame.euler = quaternion_to_euler(orientation);
+	return_outputs.orientation_earth_frame.euler = quaternion_to_euler(orientation_declination);
 	
-	return_outputs.orientation.euler = quaternion_to_euler(orientation_global);
+	return_outputs.orientation.euler = quaternion_to_euler(quaternion_conjugate(orientation_declination));
 
 	return_outputs.acceleration.zero = acceleration_zero;
 

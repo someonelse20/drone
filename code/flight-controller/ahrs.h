@@ -1,14 +1,5 @@
-// #import <vector>
-
-/*
-#define X = 0
-#define Y = 1
-#define Z = 2
-#define W_Q = 0
-#define X_Q = 1
-#define Y_Q = 2
-#define Z_Q = 3
-*/
+#ifndef AHRS_H
+#define AHRS_H
 
 struct quaternion_struct {
 	double w, x, y, z;
@@ -38,6 +29,8 @@ struct output_struct {
 	orientation_struct orientation; // Orientation of the IMU relative to the earth.
 	orientation_struct orientation_earth_frame; // Orientation of the earth relative to the IMU, the default output of the algorithm.
 	acceleration_struct acceleration;
+	bool accel_rejected = false;
+	bool mag_rejected = false;
 };
 
 struct calibrate {
@@ -55,7 +48,9 @@ struct settings_struct{
 	
 	double min_mag_distortion=0.22;
 	double max_mag_distoriton=0.67;
-	
+	double declination = 15.2;
+	bool add_declination = true;
+
 	double accel_rejection=0.1; // Acceleration in g that the accelerometer should be considered unreliable.
 	double accel_rejection_t=1000; // Time in ms that acceleration > accel_rejection after which the accelerometer will be rejected.
 	
@@ -171,8 +166,11 @@ class ahrs {
 	// Calculates normal of a quaternion.
 	double quaternion_norm(quaternion_struct q);
 
-	// Converts quaterion angle to euler angle.
+	// Converts quaterion to euler angle.
 	vector_struct quaternion_to_euler(quaternion_struct q);
+
+	// Converts euler angle to quaternion.
+	quaternion_struct euler_to_quaternion(vector_struct v);
 
 	// Calculates conjugate of quaterion.
 	quaternion_struct quaternion_conjugate(quaternion_struct q);
@@ -217,16 +215,16 @@ class ahrs {
 	vector_struct gyro_bias_compensation(vector_struct gyro);
 
 	// Ignores magnetometer readings when the magnetometer variation is too high and unreliable.
-	vector_struct mag_rejection(vector_struct mag);
+	vector_struct mag_rejection(vector_struct mag, bool* mag_rejected);
 
 	// Ignores accelerometer readings when accelerating too much and the accelerometer is unreliable.
-	vector_struct accel_rejection(vector_struct accel);
+	vector_struct accel_rejection(vector_struct accel, bool* accel_rejected);
 
 	// Calibrates the gyrometer and the accelerometer based off pre-calculated values.
 	vector_struct calibrate_gyro_accel(vector_struct value, matrix_struct alignment, vector_struct sensitivity, vector_struct bias);
 
 	// Calibrates the magnetometer based off pre-calculated values.
-	vector_struct calibrate_mag(vector_struct mag, matrix_struct soft_iorn, vector_struct hard_iorn);
+	vector_struct calibrate_mag(vector_struct mag, matrix_struct alignment, matrix_struct soft_iorn, vector_struct hard_iorn);
 
 	output_struct update(vector_struct gyro, vector_struct accel, vector_struct, double dt);
 
@@ -239,3 +237,4 @@ void set_settings(settings_struct new_settings);
 output_struct update(double gyro[3], double accel[3], double mag[3], double sample_period);
 */
 
+#endif
