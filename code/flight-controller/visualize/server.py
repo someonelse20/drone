@@ -72,7 +72,7 @@ while True:
 
     c.sendall(data.encode())
 
-    #time.sleep(0.1)
+    time.sleep(0.05)
 
 c.close()
 

@@ -105,6 +105,7 @@ int main() {
 
 	ahrs_alg.settings.gyro_calibrate.bias = ahrs_alg.gyro_bias_calibration(1, &gyro_calibrate); //{2.93716433, 0.08483891, 0.71578982};
 	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.8409687, 0.87876116, 0.87530723};
+	// ahrs_alg.settings.gyro_calibrate.rotation_matrix = {{1.0, 0.0, 0.0}, {0.0, -1.0, 0.0}, {0.0, 0.0, -1.0}};
 	
 	ahrs_alg.settings.accel_calibrate.bias = {-0.02425592, 0.00482671, 0.00482671};
 	ahrs_alg.settings.accel_calibrate.sensitivity = {1.00154462, 0.99859621, 0.99785103};
