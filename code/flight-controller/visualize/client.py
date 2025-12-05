@@ -1,5 +1,4 @@
 import socket
-import pickle
 
 PORT = 5000
 
@@ -25,29 +24,32 @@ def run(function):
 
     data_recv.pop()
 
-    #print(data_recv)
+    print(data_recv)
 
-    while len(data_recv) % 3 != 0:
+    while len(data_recv) > 1:
         data_recv.pop()
 
-    for data in data_recv:
-        print(data)
-        data_sensors = data.split(';')
+    data_sensors = data_recv[0].split(';')
+    if len(data_sensors) == 3:
+        print(data_sensors)
         gyro_data = data_sensors[0].split(',')
         accel_data = data_sensors[1].split(',')
         mag_data = data_sensors[2].split(',')
 
-        return_value.gyro.x = float(gyro_data[0])
-        return_value.gyro.y = float(gyro_data[1])
-        return_value.gyro.z = float(gyro_data[2])
+        try:
+            return_value.gyro.x = float(gyro_data[0])
+            return_value.gyro.y = float(gyro_data[1])
+            return_value.gyro.z = float(gyro_data[2])
 
-        return_value.accel.x = float(accel_data[0])
-        return_value.accel.y = float(accel_data[1])
-        return_value.accel.z = float(accel_data[2])
+            return_value.accel.x = float(accel_data[0])
+            return_value.accel.y = float(accel_data[1])
+            return_value.accel.z = float(accel_data[2])
 
-        return_value.mag.x = float(mag_data[0])
-        return_value.mag.y = float(mag_data[1])
-        return_value.mag.z = float(mag_data[2])
+            return_value.mag.x = float(mag_data[0])
+            return_value.mag.y = float(mag_data[1])
+            return_value.mag.z = float(mag_data[2])
 
-    function(return_value)
+            function(return_value)
+        except:
+            print('data_error: ' + str(data_recv))
 

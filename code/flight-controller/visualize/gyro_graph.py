@@ -19,8 +19,13 @@ def update(data):
     graph.remove()
 
     graph = plt.plot(x, y)[0]
+    if count >= 50: plt.xlim(count - 50, count) 
+    else: plt.xlim(0, count)
+    #plt.ylim(-10, 10)
 
     count += 1
+
+    plt.pause(0.05)
 
 while 1:
     client.run(update)
