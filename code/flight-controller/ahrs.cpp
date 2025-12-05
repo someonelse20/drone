@@ -167,12 +167,12 @@ matrix_struct ahrs::matrix_product(matrix_struct ma, matrix_struct mb) {
 	return return_value;
 }
 
-double ahrs::get_timestamp() {
+inline double ahrs::get_timestamp() {
   using namespace std::chrono;
   return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() / 1000.0;
 }
 
-double ahrs::current_time() {
+inline double ahrs::current_time() {
 	return get_timestamp() - start_timestamp;
 }
 
@@ -334,14 +334,16 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	                                                                   orientation_global);
 	vector_struct acceleration_global = vector_struct {acceleration_global_quaternion.x, acceleration_global_quaternion.y, acceleration_global_quaternion.z};
 
+	quaternion_struct orientation_global_declination = quaternion_conjugate(orientation_declination);
+
 	// return value definition
 	return_outputs.orientation_earth_frame.quaterion = orientation_declination;
 
-	return_outputs.orientation.quaterion = quaternion_conjugate(orientation_declination);
+	return_outputs.orientation.quaterion = orientation_global_declination;
 
 	return_outputs.orientation_earth_frame.euler = quaternion_to_euler(orientation_declination);
 	
-	return_outputs.orientation.euler = quaternion_to_euler(quaternion_conjugate(orientation_declination));
+	return_outputs.orientation.euler = quaternion_to_euler(orientation_global_declination);
 
 	return_outputs.acceleration.zero = acceleration_zero;
 
