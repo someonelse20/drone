@@ -49,6 +49,9 @@ def offset_calibration():
 
     return np.array([h[0], h[2], h[4]])
 
+def ellipsoid_calibration():
+    M = np.array([])
+
 offset = offset_calibration()
 print(offset)
 
