@@ -35,7 +35,7 @@ struct output_struct {
 
 struct calibrate {
 	matrix_struct rotation_matrix = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
-	vector_struct sensitivity = {0.0, 0.0, 0.0};
+	vector_struct sensitivity = {1.0, 1.0, 1.0};
 	vector_struct bias = {0.0, 0.0, 0.0};
 	matrix_struct soft_iorn = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
 	vector_struct hard_iorn = {0.0, 0.0, 0.0};
@@ -117,6 +117,9 @@ class ahrs {
 
 	// Converts euler angle in radians to quaternion.
 	quaternion_struct euler_to_quaternion(vector_struct v);
+
+	// Normalizes quaternion.
+	quaternion_struct normalize_quaternion(quaternion_struct q);
 
 	// Calculates conjugate of quaterion.
 	quaternion_struct quaternion_conjugate(quaternion_struct q);

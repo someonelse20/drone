@@ -2,7 +2,6 @@
 #include <cmath>
 #include "ahrs.h"
 #include <iostream>
-// #include <algorithm>
 
 using namespace std;
 
@@ -41,6 +40,10 @@ quaternion_struct ahrs::euler_to_quaternion(vector_struct v) {
 	return_value.z = cr * cp * sy - sr * sp * cy;
 
 	return return_value;
+}
+
+quaternion_struct ahrs::normalize_quaternion(quaternion_struct q) {
+	return scale_quaternion(q, 1 / quaternion_norm(q));
 }
 
 quaternion_struct ahrs::quaternion_conjugate(quaternion_struct q) {
@@ -292,6 +295,9 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	vector_struct accel_conditioned = accel_rejection(accel_calibrated, &return_outputs.accel_rejected);
 	vector_struct mag_conditioned = mag_rejection(mag_calibrated, &return_outputs.mag_rejected);
 
+	// converts gyro to rad/s from deg/s after conditioning
+	gyro_conditioned = scale_vector(gyro_conditioned, M_PI / 180);
+
 	// error calculation
 	vector_struct accel_normalized = scale_vector(accel_conditioned, 1/vector_norm(accel_conditioned));
 	a_error = cross_product(accel_normalized, vector_struct {(2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y),
@@ -312,10 +318,10 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	// complementary filter
 	vector_struct gyro_error_product = subtract_vector(gyro_conditioned, scale_vector(error, gain));
 
-	quaternion_struct orientation_rate_of_chage = scale_quaternion(quaternion_product(orientation, quaternion_struct {0, gyro_error_product.x, gyro_error_product.y, gyro_error_product.z}), 0.5);
+	quaternion_struct orientation_rate_of_chage = quaternion_product(scale_quaternion(orientation, 0.5), {0, gyro_error_product.x, gyro_error_product.y, gyro_error_product.z});
 
 	quaternion_struct orientation_unnormalised = add_quaternion(orientation, scale_quaternion(orientation_rate_of_chage, dt));
-	orientation = scale_quaternion(orientation_unnormalised, 1 / quaternion_norm(orientation_unnormalised));
+	orientation = normalize_quaternion(orientation_unnormalised);
 
 	// adding declination
 	quaternion_struct orientation_declination = orientation;

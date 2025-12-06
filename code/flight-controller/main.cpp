@@ -18,7 +18,7 @@ struct imu_data {
 
 LSM9DS1 imu(IMU_MODE_I2C, 0x6b, 0x1e);
 
-double dt = 0.013; // Deltatime in miliseconds.
+double dt = 0.013; // Deltatime in seconds.
 
 // Gets time in miliseconds since epoch.
 double get_timestamp() {
@@ -27,11 +27,11 @@ double get_timestamp() {
 }
 
 // Initialize LSM9DS1.
-void imu_init(int accel_scale = 8, int gyro_scale = 500, int mag_scale = 0) { // Set default settings for LSM9DS1. mag_scale is not currently used.
+void imu_init(int accel_scale = 2, int gyro_scale = 245, int mag_scale = 4) { // Set default settings for LSM9DS1.
 	// Set settings
 	imu.settings.gyro.scale = gyro_scale;
 	imu.settings.accel.scale = accel_scale;
-	//imu.settings.mag.scale = mag_scale;
+	imu.settings.mag.scale = mag_scale;
 
 	imu.begin();
 	if (!imu.begin()) {
@@ -109,23 +109,24 @@ int main() {
 	
 	ahrs_alg.settings.accel_calibrate.bias = {-0.02425592, 0.00482671, 0.00482671};
 	ahrs_alg.settings.accel_calibrate.sensitivity = {1.00154462, 0.99859621, 0.99785103};
-	ahrs_alg.settings.accel_calibrate.rotation_matrix = {{1.0, 0.0, 0.0}, {0.0, -1.0, 0.0}, {0.0, 0.0, -1.0}};
+	ahrs_alg.settings.accel_calibrate.rotation_matrix = {{-1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, -1.0}};
 
 	ahrs_alg.settings.mag_calibrate.hard_iorn = {-0.04678306, 0.18749608, -0.12834874};
-	ahrs_alg.settings.mag_calibrate.rotation_matrix = {{0.0, 1.0, 0.0}, {-1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}};
+	// ahrs_alg.settings.mag_calibrate.rotation_matrix = {{0.0, 1.0, 0.0}, {-1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}};
+	ahrs_alg.settings.mag_calibrate.rotation_matrix = {{0.0, -1.0, 0.0}, {-1.0, 0.0, 0.0}, {0.0, 0.0, -1.0}};
 
 	ahrs_alg.settings.accel_rejection_t = 0.5;
 
-	ahrs_alg.settings.gain_normal = 10.0;
-	ahrs_alg.settings.gain_init = 30.0;
+	ahrs_alg.settings.gain_normal = 2.0;
+	ahrs_alg.settings.gain_init = 10;
 
-	ahrs_alg.settings.declination = 0.0; // 15.2;
-	ahrs_alg.settings.add_declination = true;
+	ahrs_alg.settings.declination = 15.2;
+	ahrs_alg.settings.add_declination = false;
 
 	// test_imu(true);
 
 	while (true) {
-		double timestamp = ahrs_alg.get_timestamp();
+		// double timestamp = ahrs_alg.get_timestamp();
 
 		imu_data imu_readings = read_imu();
 
