@@ -1,42 +1,64 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-hard_iorn = [-0.04678306, 0.18749608, -0.12834874]
-
-def calibrate(points, axis):
-    return_list = []
-
-    for i in range(len(points)):
-        return_list.append(points[i] - hard_iorn[axis])
-
-    return return_list
+import calibrate_mag
 
 def read_file(file):
-    xs = []
-    ys = []
-    zs = []
-
+    points = np.array([])
 
     datafile = open("./data/" + file, "rt")
     rawdata = datafile.read().split("\n")
 
     for line in rawdata:
         if "mag" in line:
-            nums = line.replace("mag:", "").split(",")
-            xs.append(float(nums[0]) - hard_iorn[0])
-            ys.append(float(nums[1]) - hard_iorn[1])
-            zs.append(float(nums[2]) - hard_iorn[2])
+            string = line.replace("mag:", "").split(",")
+            nums = np.zeros(3)
+            for i in range(3):
+                nums[i] = float(string[i])
 
-    return [xs, ys, zs]
+            if points.size == 0:
+                points = np.array([nums])
+            else:
+                points = np.append(points, [nums], axis=0)
+
+    return points 
+
+def calibrate(points, soft_iorn, hard_iorn):
+    return_list = np.array([])
+
+    for i in range(len(points)):
+        if return_list.size == 0:
+            return_list = np.array([np.dot(soft_iorn, points[i]) - hard_iorn])
+        else:
+            return_list = np.append(return_list, [np.dot(soft_iorn, points[i]) - hard_iorn], axis=0)
+
+    return return_list
+
+def scatter_points(points, set_color=''):
+    xs = []
+    ys = []
+    zs = []
+
+    for point in points:
+        xs.append(point[0])
+        ys.append(point[1])
+        zs.append(point[2])
+
+    ax.scatter(xs, ys, zs, color=set_color)
 
 fig = plt.figure()
 ax = fig.add_subplot(projection='3d')
 
-files = ["m1", "m2", "m3"]
+points = read_file("m1")
+points = np.append(points, read_file("m2"), axis=0)
+points = np.append(points, read_file("m3"), axis=0)
 
-for file in files:
-    points = read_file(file)
-    ax.scatter(points[0], points[1], points[2])
+scatter_points(points, 'orange')
+
+soft, hard = calibrate_mag.ellipsoid_calibration()
+
+calibrated = calibrate(points, soft, hard)
+scatter_points(calibrated, 'blue')
 
 ax.quiver(0, 0, 0, 0.5, 0, 0)
 ax.quiver(0, 0, 0, 0, 0.5, 0)
@@ -47,7 +69,7 @@ ax.set_ylabel('Y Label')
 ax.set_zlabel('Z Label')
 
 # reference sphere
-radius = 0.5
+radius = 0.520411
 u = np.linspace(0, 2 * np.pi, 100)
 v = np.linspace(0, np.pi, 100)
 x = radius * np.outer(np.cos(u), np.sin(v))
