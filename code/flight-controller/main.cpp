@@ -107,6 +107,7 @@ int main() {
 	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.8409687, 0.87876116, 0.87530723};
 	// ahrs_alg.settings.gyro_calibrate.rotation_matrix = {{1.0, 0.0, 0.0}, {0.0, -1.0, 0.0}, {0.0, 0.0, -1.0}};
 	
+	ahrs_alg.settings.accel_calibrate.bias = {-0.04, 0, 0};
 	// ahrs_alg.settings.accel_calibrate.bias = {-0.02425592, 0.00482671, 0.00482671};
 	// ahrs_alg.settings.accel_calibrate.sensitivity = {1.00154462, 0.99859621, 0.99785103};
 	// ahrs_alg.settings.accel_calibrate.rotation_matrix = {{-1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, -1.0}};
@@ -122,8 +123,8 @@ int main() {
 	ahrs_alg.settings.gain_normal = 5.0;
 	ahrs_alg.settings.gain_init = 15.0;
 
-	ahrs_alg.settings.declination = 15.2;
-	ahrs_alg.settings.add_declination = true;
+	ahrs_alg.settings.declination = 133.3;
+	ahrs_alg.settings.add_declination = false;
 
 	// test_imu(true);
 
@@ -132,19 +133,24 @@ int main() {
 
 		imu_data imu_readings = read_imu();
 
-		// imu_readings.accel.z = -imu_readings.accel.z;
+		// cout << imu_readings.accel.x << "," << imu_readings.accel.y << "," << imu_readings.accel.z << endl;
 
 		// cout << imu_readings.accel.z << endl;;
 
 		// output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, {0, 0, 0}, dt);
 		output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
 
-		cout << orientation.orientation.euler.z << endl;
+		// cout << orientation.orientation.euler.z << endl;
 		// cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
 		// cout << orientation.orientation_earth_frame.euler.x << ", " << orientation.orientation_earth_frame.euler.y << ", " << orientation.orientation_earth_frame.euler.z << endl;
 		// cout << orientation.orientation.quaterion.x << "," << orientation.orientation.quaterion.y << "," << orientation.orientation.quaterion.z << "," << orientation.orientation.quaterion.w << endl;
 		// cout << orientation.acceleration.global.x << "," << orientation.acceleration.global.y << "," << orientation.acceleration.global.z << endl;
 		// cout << orientation.acceleration.zero.x << ", " << orientation.acceleration.zero.y << ", " << orientation.acceleration.zero.z << endl;
+
+		double heading = orientation.orientation.euler.z;
+		if (heading < 0) heading += 360;
+		heading += 15;
+		cout << heading << endl;
 
 		// cout << ahrs_alg.get_timestamp() - timestamp << endl;
 	}

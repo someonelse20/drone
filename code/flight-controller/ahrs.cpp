@@ -16,9 +16,9 @@ double ahrs::quaternion_norm(quaternion_struct q) {
 vector_struct ahrs::quaternion_to_euler(quaternion_struct q) {
 	vector_struct return_value;
 
-	return_value.x = atan2(2 * (q.y * q.z - q.w * q.x), 2 * pow(q.w, 2) - 1 + 2 * pow(q.z, 2)) * 180.0 / M_PI,
+	return_value.x = atan2(2 * (q.y * q.z - q.w * q.x), 2 * pow(q.w, 2) - 1 + 2 * pow(q.z, 2)) * (180.0 / M_PI),
 	return_value.y = -asin(2 * (q.x * q.z + q.w * q.y)) * 180.0 / M_PI,
-	return_value.z = atan2(2 * (q.x * q.y - q.w * q.z), 2 * pow(q.w, 2) - 1 + 2 * pow(q.x, 2)) * 180.0 / M_PI;
+	return_value.z = atan2(2 * (q.x * q.y - q.w * q.z), 2 * pow(q.w, 2) - 1 + 2 * pow(q.x, 2)) * (180.0 / M_PI);
 
 	return return_value;
 }
@@ -251,7 +251,7 @@ vector_struct ahrs::calibrate_mag(vector_struct mag, matrix_struct alignment, ma
 
 	calibrated = matrix_vector_product(soft_iorn, mag);
 	calibrated = subtract_vector(calibrated, hard_iorn);
-	calibrated = matrix_vector_product(alignment, calibrated);
+	// calibrated = matrix_vector_product(alignment, calibrated);
 
 	return calibrated;
 }
@@ -304,14 +304,19 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 
 	// error calculation
 	vector_struct accel_normalized = normalize_vector(accel_conditioned);
-	a_error = cross_product(accel_normalized, vector_struct {(2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y),
-                                                             (2 * orientation.y * orientation.z) + (2 * orientation.w * orientation.x),
-                                                             (2 * pow(orientation.w, 2)) - 1 + (2 * pow(orientation.z, 2))});
-	// vector_struct cross_a_m = mag_calibrated;
+	a_error = cross_product(accel_normalized, {(2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y),
+                                               (2 * orientation.y * orientation.z) + (2 * orientation.w * orientation.x),
+                                               (2 * pow(orientation.w, 2)) - 1 + (2 * pow(orientation.z, 2))});
+
+	// cout << accel_normalized.x << "," << accel_normalized.y << "," << accel_normalized.z << endl;
+	// cout << a_error.x << ", " << a_error.y << ", " << a_error.z << endl;
+
 	vector_struct cross_a_m = cross_product(accel_normalized, normalize_vector(mag_calibrated));
-	m_error = cross_product(cross_a_m, vector_struct {(-2 * pow(orientation.w, 2)) + 1 - (2 * pow(orientation.x, 2)),
-                                                      (-2 * orientation.x * orientation.y) + (2 * orientation.w * orientation.z),
-                                                      (-2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y)});
+	// cout << cross_a_m.x << ", " << cross_a_m.y << ", " << cross_a_m.z << endl;
+	m_error = cross_product(cross_a_m, {(-2 * pow(orientation.w, 2)) + 1 - (2 * pow(orientation.x, 2)),
+                                        (-2 * orientation.x * orientation.y) + (2 * orientation.w * orientation.z),
+                                        (-2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y)});
+	// cout << m_error.x << ", " << m_error.y << ", " << m_error.z << endl;
 
 	if (vector_norm(accel_conditioned) > 0 && vector_norm(mag_conditioned) > 0)
 		error = add_vector(a_error, m_error);
@@ -319,6 +324,8 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 		error = a_error;
 	else 
 		error = {0, 0, 0};
+
+	// cout << error.x << ", " << error.y << ", " << error.z << endl;
 
 	// complementary filter
 	vector_struct gyro_error_product = subtract_vector(gyro_conditioned, scale_vector(error, gain));
@@ -328,6 +335,24 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	quaternion_struct orientation_unnormalised = add_quaternion(orientation, scale_quaternion(orientation_rate_of_chage, dt));
 	orientation = normalize_quaternion(orientation_unnormalised);
 
+	// zero g acceleration calculation (Don't use the rejected acceleration results here.)
+	vector_struct acceleration_zero = subtract_vector(accel_calibrated, {2 * orientation.x * orientation.z - 2 * orientation.w * orientation.y,
+	                                                                     2 * orientation.y * orientation.z + 2 * orientation.w * orientation.x,
+	                                                                     2 * pow(orientation.w, 2) - 1 + 2 * pow(orientation.z, 2)});
+
+	/*
+	vector_struct test = {2 * orientation.x * orientation.z - 2 * orientation.w * orientation.y,
+	                      2 * orientation.y * orientation.z + 2 * orientation.w * orientation.x,
+	                      2 * pow(orientation.w, 2) - 1 + 2 * pow(orientation.z, 2)};
+
+	cout << test.x << ", " << test.y << ", " << test.z << endl;
+	*/
+
+	quaternion_struct orientation_global = quaternion_conjugate(orientation);
+	quaternion_struct acceleration_global_quaternion = quaternion_product(quaternion_product(orientation, {0, acceleration_zero.x, acceleration_zero.y, acceleration_zero.z}),
+	                                                                   orientation_global);
+	vector_struct acceleration_global = {acceleration_global_quaternion.x, acceleration_global_quaternion.y, acceleration_global_quaternion.z};
+
 	// adding declination
 	quaternion_struct orientation_declination = orientation;
 
@@ -335,15 +360,6 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 		quaternion_struct declination = euler_to_quaternion({0, 0, settings.declination * (M_PI / 180)});
 		orientation_declination = quaternion_product(orientation, declination);
 	}
-
-	// zero g acceleration calculation (Don't use the rejected acceleration results here.)
-	vector_struct acceleration_zero = subtract_vector(accel_calibrated, {2 * orientation.x * orientation.z - 2 * orientation.w * orientation.y,
-	                                                                     2 * orientation.y * orientation.z + 2 * orientation.w * orientation.x,
-	                                                                     2 * pow(orientation.w, 2) - 1 + 2 * pow(orientation.z, 2)});
-	quaternion_struct orientation_global = quaternion_conjugate(orientation);
-	quaternion_struct acceleration_global_quaternion = quaternion_product(quaternion_product(orientation, {0, acceleration_zero.x, acceleration_zero.y, acceleration_zero.z}),
-	                                                                   orientation_global);
-	vector_struct acceleration_global = {acceleration_global_quaternion.x, acceleration_global_quaternion.y, acceleration_global_quaternion.z};
 
 	quaternion_struct orientation_global_declination = quaternion_conjugate(orientation_declination);
 
