@@ -136,6 +136,9 @@ class ahrs {
 	// Subtracts two quaternions.
 	quaternion_struct subtract_quaternion(quaternion_struct va, quaternion_struct vb);
 
+	// Normalizes vector.
+	vector_struct normalize_vector(vector_struct v);
+
 	// Calcuates cross product of two vectors.
 	vector_struct cross_product(vector_struct va, vector_struct vb);
 

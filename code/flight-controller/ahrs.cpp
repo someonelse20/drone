@@ -101,6 +101,10 @@ quaternion_struct ahrs::subtract_quaternion(quaternion_struct va, quaternion_str
 	return return_value;
 }
 
+vector_struct ahrs::normalize_vector(vector_struct v) {
+	return scale_vector(v, 1 / vector_norm(v));
+}
+
 vector_struct ahrs::cross_product(vector_struct va, vector_struct vb) {
 	vector_struct return_value;
 
@@ -299,21 +303,22 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	gyro_conditioned = scale_vector(gyro_conditioned, M_PI / 180);
 
 	// error calculation
-	vector_struct accel_normalized = scale_vector(accel_conditioned, 1/vector_norm(accel_conditioned));
+	vector_struct accel_normalized = normalize_vector(accel_conditioned);
 	a_error = cross_product(accel_normalized, vector_struct {(2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y),
                                                              (2 * orientation.y * orientation.z) + (2 * orientation.w * orientation.x),
                                                              (2 * pow(orientation.w, 2)) - 1 + (2 * pow(orientation.z, 2))});
-	vector_struct cross_a_m = cross_product(accel_normalized, scale_vector(mag_conditioned, 1/vector_norm(mag_conditioned)));
+	// vector_struct cross_a_m = mag_calibrated;
+	vector_struct cross_a_m = cross_product(accel_normalized, normalize_vector(mag_calibrated));
 	m_error = cross_product(cross_a_m, vector_struct {(-2 * pow(orientation.w, 2)) + 1 - (2 * pow(orientation.x, 2)),
                                                       (-2 * orientation.x * orientation.y) + (2 * orientation.w * orientation.z),
                                                       (-2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y)});
-	
+
 	if (vector_norm(accel_conditioned) > 0 && vector_norm(mag_conditioned) > 0)
 		error = add_vector(a_error, m_error);
 	else if (vector_norm(accel_conditioned) > 0)
 		error = a_error;
 	else 
-		error = vector_struct {0, 0, 0};
+		error = {0, 0, 0};
 
 	// complementary filter
 	vector_struct gyro_error_product = subtract_vector(gyro_conditioned, scale_vector(error, gain));
@@ -332,13 +337,13 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	}
 
 	// zero g acceleration calculation (Don't use the rejected acceleration results here.)
-	vector_struct acceleration_zero = subtract_vector(accel, vector_struct {2 * orientation.x * orientation.z - 2 * orientation.w * orientation.y,
-	                                                                          2 * orientation.y * orientation.z + 2 * orientation.w * orientation.x,
-	                                                                          2 * pow(orientation.w, 2) - 1 + 2 * pow(orientation.z, 2)});
+	vector_struct acceleration_zero = subtract_vector(accel_calibrated, {2 * orientation.x * orientation.z - 2 * orientation.w * orientation.y,
+	                                                                     2 * orientation.y * orientation.z + 2 * orientation.w * orientation.x,
+	                                                                     2 * pow(orientation.w, 2) - 1 + 2 * pow(orientation.z, 2)});
 	quaternion_struct orientation_global = quaternion_conjugate(orientation);
-	quaternion_struct acceleration_global_quaternion = quaternion_product(quaternion_product(orientation, quaternion_struct {0, acceleration_zero.x, acceleration_zero.y, acceleration_zero.z}),
+	quaternion_struct acceleration_global_quaternion = quaternion_product(quaternion_product(orientation, {0, acceleration_zero.x, acceleration_zero.y, acceleration_zero.z}),
 	                                                                   orientation_global);
-	vector_struct acceleration_global = vector_struct {acceleration_global_quaternion.x, acceleration_global_quaternion.y, acceleration_global_quaternion.z};
+	vector_struct acceleration_global = {acceleration_global_quaternion.x, acceleration_global_quaternion.y, acceleration_global_quaternion.z};
 
 	quaternion_struct orientation_global_declination = quaternion_conjugate(orientation_declination);
 

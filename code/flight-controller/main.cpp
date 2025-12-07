@@ -107,21 +107,23 @@ int main() {
 	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.8409687, 0.87876116, 0.87530723};
 	// ahrs_alg.settings.gyro_calibrate.rotation_matrix = {{1.0, 0.0, 0.0}, {0.0, -1.0, 0.0}, {0.0, 0.0, -1.0}};
 	
-	ahrs_alg.settings.accel_calibrate.bias = {-0.02425592, 0.00482671, 0.00482671};
-	ahrs_alg.settings.accel_calibrate.sensitivity = {1.00154462, 0.99859621, 0.99785103};
-	ahrs_alg.settings.accel_calibrate.rotation_matrix = {{-1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, -1.0}};
+	// ahrs_alg.settings.accel_calibrate.bias = {-0.02425592, 0.00482671, 0.00482671};
+	// ahrs_alg.settings.accel_calibrate.sensitivity = {1.00154462, 0.99859621, 0.99785103};
+	// ahrs_alg.settings.accel_calibrate.rotation_matrix = {{-1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, -1.0}};
 
-	ahrs_alg.settings.mag_calibrate.hard_iorn = {-0.04678306, 0.18749608, -0.12834874};
-	// ahrs_alg.settings.mag_calibrate.rotation_matrix = {{0.0, 1.0, 0.0}, {-1.0, 0.0, 0.0}, {0.0, 0.0, 1.0}};
-	ahrs_alg.settings.mag_calibrate.rotation_matrix = {{0.0, -1.0, 0.0}, {-1.0, 0.0, 0.0}, {0.0, 0.0, -1.0}};
+	ahrs_alg.settings.mag_calibrate.hard_iorn = {-0.03810718,  0.18329252, -0.13790179};
+	ahrs_alg.settings.mag_calibrate.soft_iorn = {{1.04397915e+00, 6.24500451e-17, 2.77555756e-17},
+                                                 {6.24500451e-17, 1.04397915e+00, 9.43689571e-16},
+                                                 {0.00000000e+00, 9.43689571e-16, 1.04397915e+00}};
+	// ahrs_alg.settings.mag_calibrate.rotation_matrix = {{0.0, 1.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, -1.0}};
 
 	ahrs_alg.settings.accel_rejection_t = 0.5;
 
-	ahrs_alg.settings.gain_normal = 2.0;
-	ahrs_alg.settings.gain_init = 10;
+	ahrs_alg.settings.gain_normal = 5.0;
+	ahrs_alg.settings.gain_init = 15.0;
 
 	ahrs_alg.settings.declination = 15.2;
-	ahrs_alg.settings.add_declination = false;
+	ahrs_alg.settings.add_declination = true;
 
 	// test_imu(true);
 
@@ -130,11 +132,19 @@ int main() {
 
 		imu_data imu_readings = read_imu();
 
+		// imu_readings.accel.z = -imu_readings.accel.z;
+
+		// cout << imu_readings.accel.z << endl;;
+
+		// output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, {0, 0, 0}, dt);
 		output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
 
-		cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
+		cout << orientation.orientation.euler.z << endl;
+		// cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
+		// cout << orientation.orientation_earth_frame.euler.x << ", " << orientation.orientation_earth_frame.euler.y << ", " << orientation.orientation_earth_frame.euler.z << endl;
 		// cout << orientation.orientation.quaterion.x << "," << orientation.orientation.quaterion.y << "," << orientation.orientation.quaterion.z << "," << orientation.orientation.quaterion.w << endl;
 		// cout << orientation.acceleration.global.x << "," << orientation.acceleration.global.y << "," << orientation.acceleration.global.z << endl;
+		// cout << orientation.acceleration.zero.x << ", " << orientation.acceleration.zero.y << ", " << orientation.acceleration.zero.z << endl;
 
 		// cout << ahrs_alg.get_timestamp() - timestamp << endl;
 	}
