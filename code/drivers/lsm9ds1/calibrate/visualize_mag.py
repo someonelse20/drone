@@ -53,16 +53,23 @@ points = read_file("m1")
 points = np.append(points, read_file("m2"), axis=0)
 points = np.append(points, read_file("m3"), axis=0)
 
-scatter_points(points, 'orange')
+#scatter_points(points, 'orange')
 
 soft, hard = calibrate_mag.ellipsoid_calibration()
 
 calibrated = calibrate(points, soft, hard)
-scatter_points(calibrated, 'blue')
+scatter_points(points, 'gray')
 
-ax.quiver(0, 0, 0, 0.5, 0, 0)
-ax.quiver(0, 0, 0, 0, 0.5, 0)
-ax.quiver(0, 0, 0, 0, 0, 0.5)
+xpoints = read_file("gx-")
+ypoints = read_file("gy-")
+zpoints = read_file("gz-")
+scatter_points(xpoints, 'red')
+scatter_points(ypoints, 'lightgreen')
+scatter_points(zpoints, 'blue')
+
+ax.quiver(0, 0, 0, 0.5, 0, 0, color='red')
+ax.quiver(0, 0, 0, 0, 0.5, 0, color='lightgreen')
+ax.quiver(0, 0, 0, 0, 0, 0.5, color='blue')
 
 ax.set_xlabel('X Label')
 ax.set_ylabel('Y Label')
@@ -77,7 +84,7 @@ y = radius * np.outer(np.sin(u), np.sin(v))
 z = radius * np.outer(np.ones(np.size(u)), np.cos(v))
 
 # Plot the surface
-ax.plot_surface(x, y, z, alpha=0.2)
+#ax.plot_surface(x, y, z, alpha=0.2)
 
 # Set an equal aspect ratio
 ax.set_aspect('equal')
