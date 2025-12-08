@@ -52,6 +52,7 @@ ax = fig.add_subplot(projection='3d')
 points = read_file("m1")
 points = np.append(points, read_file("m2"), axis=0)
 points = np.append(points, read_file("m3"), axis=0)
+points = np.append(points, read_file("m4"), axis=0)
 
 #scatter_points(points, 'orange')
 
@@ -66,6 +67,9 @@ zpoints = read_file("gz-")
 scatter_points(xpoints, 'red')
 scatter_points(ypoints, 'lightgreen')
 scatter_points(zpoints, 'blue')
+
+circle = read_file("mx+")
+scatter_points(circle, 'orange')
 
 ax.quiver(0, 0, 0, 0.5, 0, 0, color='red')
 ax.quiver(0, 0, 0, 0, 0.5, 0, color='lightgreen')
