@@ -52,10 +52,19 @@ def offset_calibration():
 
     return np.array([h[0], h[2], h[4]])
 
-def ellipsoid_calibration():
+def ellipsoid_calibration(files=["m1", "m2", "m3", "m4", "m5"]):
+    """
     dataset = read_data("m1")
     dataset = np.append(dataset, read_data("m2"), axis=0)
     dataset = np.append(dataset, read_data("m3"), axis=0)
+    """
+
+    dataset = np.array([])
+    for file in files:
+        if dataset.size == 0:
+            dataset = read_data("m1")
+        else:
+            dataset = np.append(dataset, read_data(file), axis=0)
 
     x = dataset[:, 0]
     y = dataset[:, 1]
@@ -75,6 +84,9 @@ def ellipsoid_calibration():
 
     d2 = x**2 + y**2 + z**2
     u = la.lstsq(D, d2, rcond=None)[0]
+
+    #print(D)
+    #print(d2)
 
     v = np.zeros(10)
     v[0] = u[0] + u[1] - 1
@@ -109,9 +121,62 @@ def ellipsoid_calibration():
 
     return soft_iorn, np.array([hard_iorn[0][0], hard_iorn[1][0], hard_iorn[2][0]])
 
+def alignment_calibration(files):
+    init_soft_iorn, init_hard_iorn = ellipsoid_calibration()
+
+    v = np.array([])
+
+    for axis in range(3):
+        dataset = np.array([])
+        if dataset.size == 0:
+            dataset = calibrate(read_data(files[axis]), init_soft_iorn, init_hard_iorn)
+        else:
+            dataset = np.append(dataset, calibrate(read_data(files[axis]), init_soft_iorn, init_hard_iorn), axis=0)
+
+        x = dataset[:, 0]
+        y = dataset[:, 1]
+        z = dataset[:, 2]
+
+        M = np.column_stack([
+            x,
+            y,
+            z
+        ])
+
+        ones = np.ones((x.size, 1))
+
+        if v.size == 0:
+            v = la.lstsq(M, ones)[0]
+        else:
+            v = np.append(v, la.lstsq(M, ones)[0], axis=1)
+
+    R = np.array([v[0] / la.norm(v[0]), v[1] / la.norm(v[1]), v[2] / la.norm(v[2])])
+
+    S = R.transpose() @ init_soft_iorn
+
+    H = R.transpose() @ init_hard_iorn
+
+    print(S)
+    print(H)
+
+    return S, H
+
+def calibrate(points, soft_iorn, hard_iorn):
+    return_list = np.array([])
+
+    for i in range(len(points)):
+        if return_list.size == 0:
+            return_list = np.array([np.dot(soft_iorn, points[i]) - hard_iorn])
+        else:
+            return_list = np.append(return_list, [np.dot(soft_iorn, points[i]) - hard_iorn], axis=0)
+
+    return return_list
+
+
+
 offset = offset_calibration()
 #print(offset)
 
-callibrate = ellipsoid_calibration()
-print(callibrate)
+callibrate = alignment_calibration(["gx+", "gy+", "gz+"])
+#print(callibrate)
 
