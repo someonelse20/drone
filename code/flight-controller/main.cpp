@@ -124,9 +124,9 @@ int main() {
                                                  {-0.11265483, -0.91579853,  0.02113201},
                                                  {-0.06981889, -0.12123726,  0.91697565}};
 	ahrs_alg.settings.mag_calibrate.hard_iorn = {-0.00618111, -0.12120257, -0.15837325};
-	ahrs_alg.settings.mag_calibrate.rotation_matrix = {{ 0, -1,  0},
+	ahrs_alg.settings.mag_calibrate.rotation_matrix = {{ 0,  1,  0},
                                                        { 1,  0,  0},
-                                                       { 0,  0,  1}};
+                                                       { 0,  0, -1}};
 
 	ahrs_alg.settings.accel_rejection_t = 0.5;
 
