@@ -251,7 +251,7 @@ vector_struct ahrs::calibrate_mag(vector_struct mag, matrix_struct alignment, ma
 
 	calibrated = matrix_vector_product(soft_iorn, mag);
 	calibrated = subtract_vector(calibrated, hard_iorn);
-	// calibrated = matrix_vector_product(alignment, calibrated);
+	calibrated = matrix_vector_product(alignment, calibrated);
 
 	return calibrated;
 }
@@ -316,6 +316,9 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	m_error = cross_product(cross_a_m, {(-2 * pow(orientation.w, 2)) + 1 - (2 * pow(orientation.x, 2)),
                                         (-2 * orientation.x * orientation.y) + (2 * orientation.w * orientation.z),
                                         (-2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y)});
+	// rotate by offset rotation matrix, possibly add declination later.
+	// m_error = matrix_vector_product(settings.mag_calibrate.rotation_matrix, m_error);
+
 	// cout << m_error.x << ", " << m_error.y << ", " << m_error.z << endl;
 
 	if (vector_norm(accel_conditioned) > 0 && vector_norm(mag_conditioned) > 0)
