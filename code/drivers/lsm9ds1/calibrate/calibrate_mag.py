@@ -121,8 +121,8 @@ def ellipsoid_calibration(files=["m1", "m2", "m3", "m4", "m5"]):
 
     return soft_iorn, np.array([hard_iorn[0][0], hard_iorn[1][0], hard_iorn[2][0]])
 
-def alignment_calibration(files):
-    init_soft_iorn, init_hard_iorn = ellipsoid_calibration()
+def alignment_calibration(files, ellipsoid_files=["m1", "m2", "m3", "m4", "m5"]):
+    init_soft_iorn, init_hard_iorn = ellipsoid_calibration(ellipsoid_files)
 
     v = np.array([])
 
@@ -177,6 +177,6 @@ def calibrate(points, soft_iorn, hard_iorn):
 offset = offset_calibration()
 #print(offset)
 
-callibrate = alignment_calibration(["gx+", "gy+", "gz+"])
+#callibrate = alignment_calibration(["gx+", "gy+", "gz+"])
 #print(callibrate)
 

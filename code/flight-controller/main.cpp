@@ -112,11 +112,18 @@ int main() {
 	// ahrs_alg.settings.accel_calibrate.sensitivity = {1.00154462, 0.99859621, 0.99785103};
 	// ahrs_alg.settings.accel_calibrate.rotation_matrix = {{-1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, -1.0}};
 
+	/*
 	ahrs_alg.settings.mag_calibrate.hard_iorn = {-0.03810718,  0.18329252, -0.13790179};
 	ahrs_alg.settings.mag_calibrate.soft_iorn = {{1.04397915e+00, 6.24500451e-17, 2.77555756e-17},
                                                  {6.24500451e-17, 1.04397915e+00, 9.43689571e-16},
                                                  {0.00000000e+00, 9.43689571e-16, 1.04397915e+00}};
+	*/
 	// ahrs_alg.settings.mag_calibrate.rotation_matrix = {{0.0, 1.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, -1.0}};
+
+	ahrs_alg.settings.mag_calibrate.soft_iorn = {{ 0.90782961, -0.05349811,  0.0207239 },
+                                                 {-0.11265483, -0.91579853,  0.02113201},
+                                                 { 0.06981889, -0.01309186, -0.91697565}};
+	ahrs_alg.settings.mag_calibrate.hard_iorn = {-0.00618111, -0.12120257, 0.15837325};
 
 	ahrs_alg.settings.accel_rejection_t = 0.5;
 

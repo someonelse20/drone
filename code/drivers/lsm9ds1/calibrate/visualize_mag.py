@@ -55,27 +55,22 @@ points = np.append(points, read_file("m3"), axis=0)
 points = np.append(points, read_file("m4"), axis=0)
 points = np.append(points, read_file("m5"), axis=0)
 
-points5 = read_file("m5")
-
 #scatter_points(points, 'orange')
 
-soft, hard = calibrate_mag.alignment_calibration(["gx+", "gy+", "gz+"])
-soft2, hard2 = calibrate_mag.ellipsoid_calibration()
+soft, hard = calibrate_mag.alignment_calibration(["mx+", "my+", "mz+"], ["mc1", "mc2", "mx+", "mx-", "my+", "my-", "mz+", "mz-"])
 
 calibrated = calibrate(points, soft, hard)
 scatter_points(calibrated, 'orange')
 #scatter_points(points5, 'orange')
 
-scatter_points(calibrate(points, soft2, hard2), 'blue')
+#scatter_points(calibrate(points, soft2, hard2), 'blue')
 
-"""
-xpoints = calibrate(read_file("gx+"), soft, hard)
-ypoints = calibrate(read_file("gy+"), soft, hard)
-zpoints = calibrate(read_file("gz+"), soft, hard)
+xpoints = calibrate(read_file("mx+"), soft, hard)
+ypoints = calibrate(read_file("my+"), soft, hard)
+zpoints = calibrate(read_file("mz+"), soft, hard)
 scatter_points(xpoints, 'red')
 scatter_points(ypoints, 'lightgreen')
 scatter_points(zpoints, 'blue')
-"""
 
 #circle = read_file("mx+")
 #scatter_points(circle, 'orange')
