@@ -38,7 +38,7 @@ void record(string filename, int runtime) {
 		cout << "gyro:" + to_string(imu.calcGyro(imu.gx)) + "," + to_string(imu.calcGyro(imu.gy)) + "," + to_string(imu.calcGyro(imu.gz)) + "\n";
 		cout << "accel:" + to_string(imu.calcAccel(imu.ax)) + "," + to_string(imu.calcAccel(imu.ay)) + "," + to_string(imu.calcAccel(imu.az)) + "\n";
 		cout << "mag:" + to_string(imu.calcMag(imu.mx)) + "," + to_string(imu.calcMag(imu.my)) + "," + to_string(imu.calcMag(imu.mz)) + "\n";
-        usleep(100000);
+        // usleep(100000);
 		time(&timestamp);
 	}
 

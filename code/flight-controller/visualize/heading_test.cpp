@@ -14,10 +14,10 @@ int main() {
 
 	ahrs alg;
 
-	vector_struct hard_iorn = {-0.03810718,  0.18329252, -0.13790179};
-	matrix_struct soft_iorn = {{1.04397915e+00, 6.24500451e-17, 2.77555756e-17},
-                               {6.24500451e-17, 1.04397915e+00, 9.43689571e-16},
-                               {0.00000000e+00, 9.43689571e-16, 1.04397915e+00}};
+	vector_struct hard_iorn = {0.06474413, 0.18897978, -0.16735554};
+	matrix_struct soft_iorn = {{-1.11146911, 0.01387134, -0.01505031},
+                               {0.13072505, 1.11913704, 0.14382757},
+                               {-0.01697672, -0.00898346, 1.10987745}};
 
 	double declination = 0;
 
@@ -28,7 +28,9 @@ int main() {
 
 		// cout << mag.x << ", " << mag.y << ", " << mag.z << endl;
 
-		double heading = atan2(mag.x, mag.y);
+		// double heading = atan2(mag.x, mag.y);
+
+		double heading = atan2(mag.y, mag.x);
 
 		cout << heading * (180 / M_PI) << endl;
 
