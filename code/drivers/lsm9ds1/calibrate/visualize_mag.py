@@ -57,7 +57,7 @@ points = np.append(points, read_file("m5"), axis=0)
 
 #scatter_points(points, 'orange')
 
-soft, hard = calibrate_mag.alignment_calibration(["mx+", "my+", "mz+"], ["mc1", "mc2", "mx+", "mx-", "my+", "my-", "mz+", "mz-"])
+soft, hard = calibrate_mag.alignment_calibration(["mx+", "my+", "mz-"], ["mc1", "mc2", "mx+", "mx-", "my+", "my-", "mz+", "mz-"])
 
 calibrated = calibrate(points, soft, hard)
 scatter_points(calibrated, 'orange')
