@@ -1,6 +1,7 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
+#include <type_traits>
 #include <unistd.h>
 #include <chrono>
 #include <cmath>
@@ -103,29 +104,28 @@ int main() {
 	// Set ahrs settings.
 	ahrs ahrs_alg;
 
+	/*
+	ahrs_alg.settings.global_alignment = {{ 0,  1,  0},
+                                          {-1,  0,  0},
+                                          { 0,  0,  1}};
+	ahrs_alg.settings.global_alignment = {{ 1,  0,  0},
+                                          { 0, -1,  0},
+                                          { 0,  0, -1}};
+	*/
+
 	ahrs_alg.settings.gyro_calibrate.bias = ahrs_alg.gyro_bias_calibration(1, &gyro_calibrate); //{2.93716433, 0.08483891, 0.71578982};
 	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.8409687, 0.87876116, 0.87530723};
-	// ahrs_alg.settings.gyro_calibrate.rotation_matrix = {{1.0, 0.0, 0.0}, {0.0, -1.0, 0.0}, {0.0, 0.0, -1.0}};
-	
-	ahrs_alg.settings.accel_calibrate.bias = {-0.04, 0, 0};
-	// ahrs_alg.settings.accel_calibrate.bias = {-0.02425592, 0.00482671, 0.00482671};
-	// ahrs_alg.settings.accel_calibrate.sensitivity = {1.00154462, 0.99859621, 0.99785103};
-	// ahrs_alg.settings.accel_calibrate.rotation_matrix = {{-1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, -1.0}};
 
-	/*
-	ahrs_alg.settings.mag_calibrate.hard_iorn = {-0.03810718,  0.18329252, -0.13790179};
-	ahrs_alg.settings.mag_calibrate.soft_iorn = {{1.04397915e+00, 6.24500451e-17, 2.77555756e-17},
-                                                 {6.24500451e-17, 1.04397915e+00, 9.43689571e-16},
-                                                 {0.00000000e+00, 9.43689571e-16, 1.04397915e+00}};
-	*/
-	// ahrs_alg.settings.mag_calibrate.rotation_matrix = {{0.0, 1.0, 0.0}, {1.0, 0.0, 0.0}, {0.0, 0.0, -1.0}};
+	// ahrs_alg.settings.accel_calibrate.bias = {-0.04030407, 0.01214501, -0.02037599};
+	ahrs_alg.settings.accel_calibrate.bias = {-0.01560459,  0.01936381, -1.01180607};
+	ahrs_alg.settings.accel_calibrate.sensitivity = {1.0042335, 0.99896223, 0.99228542};
 
 	ahrs_alg.settings.mag_calibrate.soft_iorn = {{ 0.90782961, -0.05349811,  0.0207239 },
                                                  {-0.11265483, -0.91579853,  0.02113201},
                                                  {-0.06981889, -0.12123726,  0.91697565}};
 	ahrs_alg.settings.mag_calibrate.hard_iorn = {-0.00618111, -0.12120257, -0.15837325};
-	ahrs_alg.settings.mag_calibrate.rotation_matrix = {{ 0,  1,  0},
-                                                       { 1,  0,  0},
+	ahrs_alg.settings.mag_calibrate.rotation_matrix = {{ 1,  0,  0},
+                                                       { 0, -1,  0},
                                                        { 0,  0, -1}};
 
 	ahrs_alg.settings.accel_rejection_t = 0.5;
@@ -150,11 +150,11 @@ int main() {
 		// output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, {0, 0, 0}, dt);
 		output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
 
-		// cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
+		cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
 		// cout << orientation.orientation_earth_frame.euler.x << ", " << orientation.orientation_earth_frame.euler.y << ", " << orientation.orientation_earth_frame.euler.z << endl;
 		// cout << orientation.orientation.quaterion.x << "," << orientation.orientation.quaterion.y << "," << orientation.orientation.quaterion.z << "," << orientation.orientation.quaterion.w << endl;
 		// cout << orientation.acceleration.global.x << "," << orientation.acceleration.global.y << "," << orientation.acceleration.global.z << endl;
-		cout << orientation.acceleration.zero.x << ", " << orientation.acceleration.zero.y << ", " << orientation.acceleration.zero.z << endl;
+		// cout << orientation.acceleration.zero.x << ", " << orientation.acceleration.zero.y << ", " << orientation.acceleration.zero.z << endl;
 
 		/*
 		double heading = orientation.orientation.euler.z;

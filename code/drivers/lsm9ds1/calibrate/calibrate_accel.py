@@ -27,7 +27,7 @@ def read_data(file): # Converts raw imu output into a three dementional numpy ar
     return np.array([xaxis, yaxis, zaxis])
 
 def data_average(file):
-    dataset = read_data("a" + file) 
+    dataset = read_data("na" + file) 
     return np.array([np.average(dataset[x]), np.average(dataset[y]), np.average(dataset[z])])
 
 def bias_calibration(): # Calculates the mean output of the accelerometer with respect to each axis.

@@ -58,7 +58,7 @@ struct settings_struct{
 	calibrate accel_calibrate;
 	calibrate mag_calibrate;
 
-	matrix_struct global_rotation_matrix;
+	matrix_struct global_alignment = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 }; 
 
 class ahrs {
@@ -175,10 +175,10 @@ class ahrs {
 	vector_struct accel_rejection(vector_struct accel, bool* accel_rejected);
 
 	// Calibrates the gyrometer and the accelerometer based off pre-calculated values.
-	vector_struct calibrate_gyro_accel(vector_struct value, matrix_struct alignment, vector_struct sensitivity, vector_struct bias);
+	vector_struct calibrate_gyro_accel(vector_struct value, matrix_struct alignment, vector_struct sensitivity, vector_struct bias, matrix_struct global_alignment={{1, 0, 0}, {0, 1, 0}, {0, 0, 1}});
 
 	// Calibrates the magnetometer based off pre-calculated values.
-	vector_struct calibrate_mag(vector_struct mag, matrix_struct alignment, matrix_struct soft_iorn, vector_struct hard_iorn);
+	vector_struct calibrate_mag(vector_struct mag, matrix_struct alignment, matrix_struct soft_iorn, vector_struct hard_iorn, matrix_struct global_alignment={{1, 0, 0}, {0, 1, 0}, {0, 0, 1}});
 
 	// Gets bias calibration with a set amout of time the system is stationary.
 	vector_struct gyro_bias_calibration(double time, vector_struct (*gyro_function)());

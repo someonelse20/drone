@@ -232,7 +232,7 @@ vector_struct ahrs::accel_rejection(vector_struct accel, bool* accel_rejected){
 	}
 }
 
-vector_struct ahrs::calibrate_gyro_accel(vector_struct value, matrix_struct alignment, vector_struct sensitivity, vector_struct bias) {
+vector_struct ahrs::calibrate_gyro_accel(vector_struct value, matrix_struct alignment, vector_struct sensitivity, vector_struct bias, matrix_struct global_alignment) {
 	vector_struct calibrated;
 
 	matrix_struct sensitivity_inverse = {{1/sensitivity.x, 0, 0},
@@ -243,11 +243,17 @@ vector_struct ahrs::calibrate_gyro_accel(vector_struct value, matrix_struct alig
 	calibrated = matrix_vector_product(sensitivity_inverse, calibrated);
 	calibrated = matrix_vector_product(alignment, calibrated);
 
+	// Apply global rotation matrix.
+	calibrated = matrix_vector_product(global_alignment, value);
+
 	return calibrated;
 }
 
-vector_struct ahrs::calibrate_mag(vector_struct mag, matrix_struct alignment, matrix_struct soft_iorn, vector_struct hard_iorn) {
+vector_struct ahrs::calibrate_mag(vector_struct mag, matrix_struct alignment, matrix_struct soft_iorn, vector_struct hard_iorn, matrix_struct global_alignment) {
 	vector_struct calibrated;
+
+	// Apply global rotation matrix.
+	calibrated = matrix_vector_product(global_alignment, mag);
 
 	calibrated = matrix_vector_product(soft_iorn, mag);
 	calibrated = subtract_vector(calibrated, hard_iorn);
@@ -290,9 +296,11 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 		gain = settings.gain_normal;
 
 	// calibrate sensors 
-	vector_struct gyro_calibrated = calibrate_gyro_accel(gyro, settings.gyro_calibrate.rotation_matrix, settings.gyro_calibrate.sensitivity, settings.gyro_calibrate.bias);
-	vector_struct accel_calibrated = calibrate_gyro_accel(accel, settings.accel_calibrate.rotation_matrix, settings.accel_calibrate.sensitivity, settings.accel_calibrate.bias);
-	vector_struct mag_calibrated = calibrate_mag(mag, settings.mag_calibrate.rotation_matrix, settings.mag_calibrate.soft_iorn, settings.mag_calibrate.hard_iorn);
+	vector_struct gyro_calibrated = calibrate_gyro_accel(gyro, settings.gyro_calibrate.rotation_matrix, settings.gyro_calibrate.sensitivity, settings.gyro_calibrate.bias, settings.global_alignment);
+	// cout << accel.x << "," << accel.y << "," << accel.z << ":  ";
+	vector_struct accel_calibrated = calibrate_gyro_accel(accel, settings.accel_calibrate.rotation_matrix, settings.accel_calibrate.sensitivity, settings.accel_calibrate.bias, settings.global_alignment);
+	// cout << accel_calibrated.x << "," << accel_calibrated.y << "," << accel_calibrated.z << endl;
+	vector_struct mag_calibrated = calibrate_mag(mag, settings.mag_calibrate.rotation_matrix, settings.mag_calibrate.soft_iorn, settings.mag_calibrate.hard_iorn, settings.global_alignment);
 
 	// sensor conditioning
 	vector_struct gyro_conditioned = low_pass_filter(gyro_calibrated);
