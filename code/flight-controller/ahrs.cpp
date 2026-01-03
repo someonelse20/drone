@@ -339,7 +339,8 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	orientation = normalize_quaternion(orientation_unnormalised);
 
 	// zero g acceleration calculation (Don't use the rejected acceleration results here.)
-	vector_struct acceleration_zero = subtract_vector(accel_calibrated, {2 * orientation.x * orientation.z - 2 * orientation.w * orientation.y,
+	// NOTE: The original paper says to subtract these vectors but it seems to do the opposite, so I added them instead and it works.
+	vector_struct acceleration_zero = add_vector(accel_calibrated, {2 * orientation.x * orientation.z - 2 * orientation.w * orientation.y,
 	                                                                     2 * orientation.y * orientation.z + 2 * orientation.w * orientation.x,
 	                                                                     2 * pow(orientation.w, 2) - 1 + 2 * pow(orientation.z, 2)});
 

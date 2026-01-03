@@ -57,6 +57,8 @@ struct settings_struct{
 	calibrate gyro_calibrate;
 	calibrate accel_calibrate;
 	calibrate mag_calibrate;
+
+	matrix_struct global_rotation_matrix;
 }; 
 
 class ahrs {
