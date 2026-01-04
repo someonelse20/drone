@@ -232,7 +232,7 @@ vector_struct ahrs::accel_rejection(vector_struct accel, bool* accel_rejected){
 	}
 }
 
-vector_struct ahrs::calibrate_gyro_accel(vector_struct value, matrix_struct alignment, vector_struct sensitivity, vector_struct bias, matrix_struct global_alignment) {
+vector_struct ahrs::calibrate_gyro_accel(vector_struct value, matrix_struct alignment, vector_struct sensitivity, vector_struct bias) {
 	vector_struct calibrated;
 
 	matrix_struct sensitivity_inverse = {{1/sensitivity.x, 0, 0},
@@ -243,17 +243,11 @@ vector_struct ahrs::calibrate_gyro_accel(vector_struct value, matrix_struct alig
 	calibrated = matrix_vector_product(sensitivity_inverse, calibrated);
 	calibrated = matrix_vector_product(alignment, calibrated);
 
-	// Apply global rotation matrix.
-	calibrated = matrix_vector_product(global_alignment, value);
-
 	return calibrated;
 }
 
-vector_struct ahrs::calibrate_mag(vector_struct mag, matrix_struct alignment, matrix_struct soft_iorn, vector_struct hard_iorn, matrix_struct global_alignment) {
+vector_struct ahrs::calibrate_mag(vector_struct mag, matrix_struct alignment, matrix_struct soft_iorn, vector_struct hard_iorn) {
 	vector_struct calibrated;
-
-	// Apply global rotation matrix.
-	calibrated = matrix_vector_product(global_alignment, mag);
 
 	calibrated = matrix_vector_product(soft_iorn, mag);
 	calibrated = subtract_vector(calibrated, hard_iorn);
@@ -296,11 +290,9 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 		gain = settings.gain_normal;
 
 	// calibrate sensors 
-	vector_struct gyro_calibrated = calibrate_gyro_accel(gyro, settings.gyro_calibrate.rotation_matrix, settings.gyro_calibrate.sensitivity, settings.gyro_calibrate.bias, settings.global_alignment);
-	// cout << accel.x << "," << accel.y << "," << accel.z << ":  ";
-	vector_struct accel_calibrated = calibrate_gyro_accel(accel, settings.accel_calibrate.rotation_matrix, settings.accel_calibrate.sensitivity, settings.accel_calibrate.bias, settings.global_alignment);
-	// cout << accel_calibrated.x << "," << accel_calibrated.y << "," << accel_calibrated.z << endl;
-	vector_struct mag_calibrated = calibrate_mag(mag, settings.mag_calibrate.rotation_matrix, settings.mag_calibrate.soft_iorn, settings.mag_calibrate.hard_iorn, settings.global_alignment);
+	vector_struct gyro_calibrated = calibrate_gyro_accel(gyro, settings.gyro_calibrate.rotation_matrix, settings.gyro_calibrate.sensitivity, settings.gyro_calibrate.bias);
+	vector_struct accel_calibrated = calibrate_gyro_accel(accel, settings.accel_calibrate.rotation_matrix, settings.accel_calibrate.sensitivity, settings.accel_calibrate.bias);
+	vector_struct mag_calibrated = calibrate_mag(mag, settings.mag_calibrate.rotation_matrix, settings.mag_calibrate.soft_iorn, settings.mag_calibrate.hard_iorn);
 
 	// sensor conditioning
 	vector_struct gyro_conditioned = low_pass_filter(gyro_calibrated);
@@ -316,18 +308,11 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
                                                (2 * orientation.y * orientation.z) + (2 * orientation.w * orientation.x),
                                                (2 * pow(orientation.w, 2)) - 1 + (2 * pow(orientation.z, 2))});
 
-	// cout << accel_normalized.x << "," << accel_normalized.y << "," << accel_normalized.z << endl;
-	// cout << a_error.x << ", " << a_error.y << ", " << a_error.z << endl;
 
 	vector_struct cross_a_m = cross_product(accel_normalized, normalize_vector(mag_calibrated));
-	// cout << cross_a_m.x << ", " << cross_a_m.y << ", " << cross_a_m.z << endl;
 	m_error = cross_product(cross_a_m, {(-2 * pow(orientation.w, 2)) + 1 - (2 * pow(orientation.x, 2)),
                                         (-2 * orientation.x * orientation.y) + (2 * orientation.w * orientation.z),
                                         (-2 * orientation.x * orientation.z) - (2 * orientation.w * orientation.y)});
-	// rotate by offset rotation matrix, possibly add declination later.
-	// m_error = matrix_vector_product(settings.mag_calibrate.rotation_matrix, m_error);
-
-	// cout << m_error.x << ", " << m_error.y << ", " << m_error.z << endl;
 
 	if (vector_norm(accel_conditioned) > 0 && vector_norm(mag_conditioned) > 0)
 		error = add_vector(a_error, m_error);
@@ -335,8 +320,6 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 		error = a_error;
 	else 
 		error = {0, 0, 0};
-
-	// cout << error.x << ", " << error.y << ", " << error.z << endl;
 
 	// complementary filter
 	vector_struct gyro_error_product = subtract_vector(gyro_conditioned, scale_vector(error, gain));
@@ -352,15 +335,7 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	                                                                     2 * orientation.y * orientation.z + 2 * orientation.w * orientation.x,
 	                                                                     2 * pow(orientation.w, 2) - 1 + 2 * pow(orientation.z, 2)});
 
-	/*
-	vector_struct test = {2 * orientation.x * orientation.z - 2 * orientation.w * orientation.y,
-	                      2 * orientation.y * orientation.z + 2 * orientation.w * orientation.x,
-	                      2 * pow(orientation.w, 2) - 1 + 2 * pow(orientation.z, 2)};
-
-	cout << test.x << ", " << test.y << ", " << test.z << endl;
-	*/
-
-	quaternion_struct orientation_global = quaternion_conjugate(orientation);
+		quaternion_struct orientation_global = quaternion_conjugate(orientation);
 	quaternion_struct acceleration_global_quaternion = quaternion_product(quaternion_product(orientation, {0, acceleration_zero.x, acceleration_zero.y, acceleration_zero.z}),
 	                                                                   orientation_global);
 	vector_struct acceleration_global = {acceleration_global_quaternion.x, acceleration_global_quaternion.y, acceleration_global_quaternion.z};

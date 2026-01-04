@@ -39,8 +39,6 @@ void imu_init(int accel_scale = 2, int gyro_scale = 245, int mag_scale = 4) { //
 		cout << "Failed to communitate to LSM9DS1." << endl;
 		exit(EXIT_FAILURE);
 	}
-	// Possibly remove later.
-	// imu.calibrate();
 };
 
 // Read data from LSM9DS1 and output the gyro, accel, and mag data in a struct.
@@ -104,15 +102,6 @@ int main() {
 	// Set ahrs settings.
 	ahrs ahrs_alg;
 
-	/*
-	ahrs_alg.settings.global_alignment = {{ 0,  1,  0},
-                                          {-1,  0,  0},
-                                          { 0,  0,  1}};
-	ahrs_alg.settings.global_alignment = {{ 1,  0,  0},
-                                          { 0, -1,  0},
-                                          { 0,  0, -1}};
-	*/
-
 	ahrs_alg.settings.gyro_calibrate.bias = ahrs_alg.gyro_bias_calibration(1, &gyro_calibrate); //{2.93716433, 0.08483891, 0.71578982};
 	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.8409687, 0.87876116, 0.87530723};
 
@@ -127,11 +116,6 @@ int main() {
 	ahrs_alg.settings.mag_calibrate.rotation_matrix = {{ 0,  1,  0},
                                                        {-1,  0,  0},
                                                        { 0,  0,  1}};
-	/*
-	ahrs_alg.settings.mag_calibrate.rotation_matrix = {{ 1,  0,  0},
-                                                       { 0, -1,  0},
-                                                       { 0,  0, -1}};
-	*/
 
 	ahrs_alg.settings.accel_rejection_t = 0.5;
 
@@ -141,34 +125,12 @@ int main() {
 	ahrs_alg.settings.declination = 133.3;
 	ahrs_alg.settings.add_declination = false;
 
-	// test_imu(true);
-
 	while (true) {
-		// double timestamp = ahrs_alg.get_timestamp();
-
 		imu_data imu_readings = read_imu();
 
-		// cout << imu_readings.accel.x << "," << imu_readings.accel.y << "," << imu_readings.accel.z << endl;
+		output_struct ahrs_output = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
 
-		// cout << imu_readings.accel.z << endl;;
-
-		// output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, {0, 0, 0}, dt);
-		output_struct orientation = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
-
-		cout << to_string(orientation.orientation.euler.x) + ", " + to_string(orientation.orientation.euler.y) + ", " + to_string(orientation.orientation.euler.z) << endl;
-		// cout << orientation.orientation_earth_frame.euler.x << ", " << orientation.orientation_earth_frame.euler.y << ", " << orientation.orientation_earth_frame.euler.z << endl;
-		// cout << orientation.orientation.quaterion.x << "," << orientation.orientation.quaterion.y << "," << orientation.orientation.quaterion.z << "," << orientation.orientation.quaterion.w << endl;
-		// cout << orientation.acceleration.global.x << "," << orientation.acceleration.global.y << "," << orientation.acceleration.global.z << endl;
-		// cout << orientation.acceleration.zero.x << ", " << orientation.acceleration.zero.y << ", " << orientation.acceleration.zero.z << endl;
-
-		/*
-		double heading = orientation.orientation.euler.z;
-		if (heading < 0) heading += 360;
-		heading += 15;
-		cout << heading << endl;
-		*/
-
-		// cout << ahrs_alg.get_timestamp() - timestamp << endl;
+		cout << ahrs_output.orientation.euler.x << ", " << ahrs_output.orientation.euler.y << ", " << ahrs_output.orientation.euler.z << endl;
 	}
 }
 
