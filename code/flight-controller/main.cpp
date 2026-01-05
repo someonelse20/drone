@@ -1,7 +1,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <string>
-#include <type_traits>
 #include <unistd.h>
 #include <chrono>
 #include <cmath>
@@ -43,10 +42,14 @@ void imu_init(int accel_scale = 2, int gyro_scale = 245, int mag_scale = 4) { //
 
 // Read data from LSM9DS1 and output the gyro, accel, and mag data in a struct.
 imu_data read_imu() {
+	double timestamp = get_timestamp();
+
 	imu_data data;
 
 	while (!imu.gyroAvailable()) ;
 	imu.readGyro();
+
+	cout << get_timestamp() - timestamp << endl;
 
 	while (!imu.accelAvailable()) ;
 	imu.readAccel();
@@ -130,7 +133,7 @@ int main() {
 
 		output_struct ahrs_output = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
 
-		cout << ahrs_output.orientation.euler.x << ", " << ahrs_output.orientation.euler.y << ", " << ahrs_output.orientation.euler.z << endl;
+		// cout << ahrs_output.orientation.euler.x << ", " << ahrs_output.orientation.euler.y << ", " << ahrs_output.orientation.euler.z << endl;
 	}
 }
 
