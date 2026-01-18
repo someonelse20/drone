@@ -2,14 +2,12 @@
 #include <set>
 
 class pid_controller { // pid controller class
-	private:
-
+private:
 	double error = 0;
 	double previous_error = 0;
 	double proportional = 0, integral = 0, derivative = 0;
 
-	public:
-
+public:
 	double DT;
 	double kP, kI, kD;
 	double gain;

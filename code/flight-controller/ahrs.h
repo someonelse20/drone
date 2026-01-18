@@ -60,8 +60,7 @@ struct settings_struct{
 }; 
 
 class ahrs {
-	private:
-
+private:
 	// ---------------------------------------- VARIABLES ----------------------------------------
 
 	// Orientation as a quaterion. Starts at no rotation.
@@ -88,8 +87,7 @@ class ahrs {
 	// Timestamp used for calculating accel_t.
 	double accel_t_timestamp = 0.0;
 
-	public:
-
+public:
 	settings_struct settings;
 
 	// ---------------------------------------- FUNCTIONS ----------------------------------------

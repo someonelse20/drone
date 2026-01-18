@@ -4,17 +4,12 @@
 #include <unistd.h>
 #include <chrono>
 #include <cmath>
-#include "ahrs.h"
 #include <LSM9DS1_Types.h>
 #include "LSM9DS1.h"
+#include "lsm9ds1.h"
+#include "ahrs.h"
 
 using namespace std;
-
-struct imu_data {
-	vector_struct gyro = {0, 0, 0};
-	vector_struct accel = {0, 0, 0};
-	vector_struct mag = {0, 0, 0};
-};
 
 LSM9DS1 imu(IMU_MODE_I2C, 0x6b, 0x1e);
 
