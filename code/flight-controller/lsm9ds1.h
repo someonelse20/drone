@@ -11,11 +11,13 @@ struct imu_data {
 
 class lsm9ds1 {
 private:
+	int handle;
+
 	int addr;
 	int mag_addr;
 
 public:
-	lsm9ds1(int addr, int mag_addr);
+	lsm9ds1(int addr, int mag_addr, int bus = 1);
 
 	imu_data read_imu();
 

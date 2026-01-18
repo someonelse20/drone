@@ -8,6 +8,7 @@
 #include "LSM9DS1.h"
 #include "lsm9ds1.h"
 #include "ahrs.h"
+#include "motor.h"
 
 using namespace std;
 
