@@ -23,10 +23,26 @@ LSM9DS1 imu(IMU_MODE_I2C, 0x6b, 0x1e);
 
 double dt = 0.013; // Deltatime in seconds.
 
+double throttle = 30; 
+double set_x = 0, set_y = 0, set_z = 0; // The angles the flight controler will try to stay at.
+
 // Gets time in miliseconds since epoch.
 double get_timestamp() {
   using namespace std::chrono;
   return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
+}
+
+// Clamp a value between two values.
+double clamp(double value, double min, double max) {
+	if (value < min) {
+		return min;
+	}
+	else if (value > max) {
+		return max;
+	}
+	else {
+		return value;
+	}
 }
 
 // Initialize LSM9DS1.
@@ -115,10 +131,9 @@ int main() {
 	back_right_motor.stop();
 
 	// Construct PID.
-	pid_controller front_left_pid(dt);
-	pid_controller front_right_pid(dt);
-	pid_controller back_left_pid(dt);
-	pid_controller back_right_pid(dt);
+	pid_controller pid_x(dt, 1, 0, 0);
+	pid_controller pid_y(dt, 1, 0, 0);
+	pid_controller pid_z(dt, 0.1, 0, 0);
 
 	imu_init();
 
@@ -128,8 +143,7 @@ int main() {
 	ahrs_alg.settings.gyro_calibrate.bias = ahrs_alg.gyro_bias_calibration(1, &gyro_calibrate); //{2.93716433, 0.08483891, 0.71578982};
 	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.8409687, 0.87876116, 0.87530723};
 
-	// ahrs_alg.settings.accel_calibrate.bias = {-0.04030407, 0.01214501, -0.02037599};
-	ahrs_alg.settings.accel_calibrate.bias = {-0.01560459,  0.01936381, -1.01180607};
+	ahrs_alg.settings.accel_calibrate.bias = {-0.04030407, 0.01214501, -0.02037599};
 	ahrs_alg.settings.accel_calibrate.sensitivity = {1.0042335, 0.99896223, 0.99228542};
 
 	ahrs_alg.settings.mag_calibrate.soft_iorn = {{ 0.90782961, -0.05349811,  0.0207239 },
@@ -148,19 +162,35 @@ int main() {
 	ahrs_alg.settings.declination = 133.3;
 	ahrs_alg.settings.add_declination = false;
 
+	sleep(5);
+
 	while (true) {
+		// Read from IMU.
 		imu_data imu_readings = read_imu();
 
+		// cout << imu_readings.accel.x << ", " << imu_readings.accel.y << ", " << imu_readings.accel.z << endl; 
+
+		// Get orientation.
 		output_struct ahrs_output = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
 
-		double speed;
-		cin >> speed;
-		front_left_motor.set_speed(speed);
-		front_right_motor.set_speed(speed);
-		back_left_motor.set_speed(speed);
-		back_right_motor.set_speed(speed);
+		cout << ahrs_output.orientation.euler.x << ", " << ahrs_output.orientation.euler.y << ", " << ahrs_output.orientation.euler.z << endl;
 
-		// cout << ahrs_output.orientation.euler.x << ", " << ahrs_output.orientation.euler.y << ", " << ahrs_output.orientation.euler.z << endl;
+		// Update PID controlers (curently set to maintain orientation).
+		double pid_x_output = pid_x.loop(ahrs_output.orientation.euler.x, set_x);
+		double pid_y_output = pid_y.loop(ahrs_output.orientation.euler.y, set_y);
+		double pid_z_output = pid_z.loop(ahrs_output.orientation.euler.z, set_z);
+
+		cout << pid_x_output << ", " << pid_y_output << ", " << pid_z_output << endl;
+
+		// Set motor speeds.
+		/*
+		front_left_motor.set_speed(clamp(throttle + pid_x_output + pid_y_output - pid_z_output, 5, 100));
+		front_right_motor.set_speed(clamp(throttle - pid_x_output + pid_y_output + pid_z_output, 5, 100));
+		back_left_motor.set_speed(clamp(throttle + pid_x_output - pid_y_output + pid_z_output, 5, 100));
+		back_right_motor.set_speed(clamp(throttle - pid_x_output - pid_y_output - pid_z_output, 5, 100));
+		*/
+		
+		// cout << clamp(throttle + pid_x_output - pid_y_output + pid_z_output, 0, 100) << endl;
 	}
 }
 

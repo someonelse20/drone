@@ -1,4 +1,3 @@
-#include <cmath>
 #include "pid.h"
 
 pid_controller::pid_controller (double set_DT, double set_kP, double set_kI, double set_kD, double set_gain, double set_set_point, double set_proccess_value) {
