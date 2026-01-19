@@ -1,16 +1,23 @@
 #include <cstdlib>
 #include <iostream>
+#include <pigpio.h>
 #include <string>
 #include <unistd.h>
 #include <chrono>
 #include <cmath>
 #include <LSM9DS1_Types.h>
 #include "LSM9DS1.h"
-#include "lsm9ds1.h"
-#include "ahrs.h"
 #include "motor.h"
+#include "ahrs.h"
+#include "pid.h"
 
 using namespace std;
+
+struct imu_data {
+	vector_struct gyro = {0, 0, 0};
+	vector_struct accel = {0, 0, 0};
+	vector_struct mag = {0, 0, 0};
+};
 
 LSM9DS1 imu(IMU_MODE_I2C, 0x6b, 0x1e);
 
@@ -38,14 +45,10 @@ void imu_init(int accel_scale = 2, int gyro_scale = 245, int mag_scale = 4) { //
 
 // Read data from LSM9DS1 and output the gyro, accel, and mag data in a struct.
 imu_data read_imu() {
-	double timestamp = get_timestamp();
-
 	imu_data data;
 
 	while (!imu.gyroAvailable()) ;
 	imu.readGyro();
-
-	cout << get_timestamp() - timestamp << endl;
 
 	while (!imu.accelAvailable()) ;
 	imu.readAccel();
@@ -96,6 +99,27 @@ void test_imu(bool loop=false) { // If loop = true then this function will loop 
 }
 
 int main() {
+	// Initialize GPIO.
+	if (gpioInitialise() < 0)
+		exit(-1);
+
+	// Construct motors.
+	motor front_left_motor(12, 1300, 1520);
+	motor front_right_motor(13, 1145, 1510);
+	motor back_left_motor(20, 1145, 1515);
+	motor back_right_motor(21, 1290, 1530);
+
+	front_left_motor.stop();
+	front_right_motor.stop();
+	back_left_motor.stop();
+	back_right_motor.stop();
+
+	// Construct PID.
+	pid_controller front_left_pid(dt);
+	pid_controller front_right_pid(dt);
+	pid_controller back_left_pid(dt);
+	pid_controller back_right_pid(dt);
+
 	imu_init();
 
 	// Set ahrs settings.
@@ -128,6 +152,13 @@ int main() {
 		imu_data imu_readings = read_imu();
 
 		output_struct ahrs_output = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
+
+		double speed;
+		cin >> speed;
+		front_left_motor.set_speed(speed);
+		front_right_motor.set_speed(speed);
+		back_left_motor.set_speed(speed);
+		back_right_motor.set_speed(speed);
 
 		// cout << ahrs_output.orientation.euler.x << ", " << ahrs_output.orientation.euler.y << ", " << ahrs_output.orientation.euler.z << endl;
 	}

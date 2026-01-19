@@ -40,4 +40,3 @@ int main() {
 	i2cReadI2CBlockData(h, reg, (char*)data, sizeof(data));
 }
 
-

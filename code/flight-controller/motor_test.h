@@ -10,9 +10,7 @@ private:
 public:
 	motor(int set_GPIO, int set_min_speed = 1000, int set_max_speed = 2000);
 
-	int set_speed(double speed); // Speed is a percentage of 0 (off) to 100 (fully on) between the minimum value and the maximum.
-
-	void stop(); // Stops the motor.
+	int set_speed(int speed); // Speed is a percentage of 0 (off) to 1000 (fully on) between the minimum value and the maximum.
 
 	void calibrate();
 

@@ -11,19 +11,26 @@ int front_right = 19;
 int back_left = 20;
 int back_right = 21;
 
-motor::motor(int GPIO, int min_speed, int max_speed) {
-	;
+motor::motor(int set_GPIO, int set_min_speed, int set_max_speed) {
+	GPIO = set_GPIO;
+	min_speed = set_min_speed;
+	max_speed = set_max_speed;
 }
 
-int motor::set_speed(int speed) {
-	if (speed > 1000 && speed < 2000) {
-		gpioServo(GPIO, (int)round(min_speed + (max_speed - min_speed) * (speed / 1000)));
-		return 0;
+int motor::set_speed(double speed) {
+	if (speed >= 0 && speed <= 100) {
+		int true_speed = (int)round(min_speed - 1 + (max_speed + 1 - min_speed - 1) * (speed / 100.0));
+		gpioServo(GPIO, true_speed);
+		return true_speed;
 	}
 	else {
 		cout << "error, bad pulsewidth: " << speed << endl;
 		return -1;
 	}
+}
+
+void motor::stop() {
+	gpioServo(GPIO, 1000);
 }
 
 void motor::calibrate() {
@@ -32,13 +39,13 @@ void motor::calibrate() {
 
 	for (int i = 0; i < 2; i++) {
 		int input = 0;
-		while (input >= 0) {
-			int speed = 1000;
+		int speed = 1000;
 
+		while (input >= 0) {
 			cout << "enter motor speed: ";
 			cin >> input;
 
-			if (input > 0) {
+			if (input < 0) {
 				if (i == 0) {
 					min_speed = speed;
 					cout << "minimum speed set to " << min_speed << endl;
@@ -56,17 +63,14 @@ void motor::calibrate() {
 				speed = input;
 			}
 
-			set_speed(speed);
+			gpioServo(GPIO, speed);
 		}
 	}
 
+	stop();
+
 	cout << "min: " << min_speed << " max: " << max_speed << endl;
 	cout << "min and max speed temperaraly set, you should make it permanent" << endl;
-}
-
-int motor::test_class() {
-	cout << GPIO;
-	return GPIO;
 }
 
 /*
