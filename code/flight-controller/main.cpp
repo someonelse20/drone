@@ -145,6 +145,9 @@ int main() {
 
 	ahrs_alg.settings.accel_calibrate.bias = {-0.04030407, 0.01214501, -0.02037599};
 	ahrs_alg.settings.accel_calibrate.sensitivity = {1.0042335, 0.99896223, 0.99228542};
+	ahrs_alg.settings.accel_calibrate.rotation_matrix = {{ 1,  0,  0},
+                                                         { 0, -1,  0},
+                                                         { 0,  0, -1}};
 
 	ahrs_alg.settings.mag_calibrate.soft_iorn = {{ 0.90782961, -0.05349811,  0.0207239 },
                                                  {-0.11265483, -0.91579853,  0.02113201},
@@ -162,7 +165,8 @@ int main() {
 	ahrs_alg.settings.declination = 133.3;
 	ahrs_alg.settings.add_declination = false;
 
-	sleep(5);
+	// Wait until ESCs are initialized.
+	// sleep(5);
 
 	while (true) {
 		// Read from IMU.
@@ -180,7 +184,7 @@ int main() {
 		double pid_y_output = pid_y.loop(ahrs_output.orientation.euler.y, set_y);
 		double pid_z_output = pid_z.loop(ahrs_output.orientation.euler.z, set_z);
 
-		cout << pid_x_output << ", " << pid_y_output << ", " << pid_z_output << endl;
+		// cout << pid_x_output << ", " << pid_y_output << ", " << pid_z_output << endl;
 
 		// Set motor speeds.
 		/*
