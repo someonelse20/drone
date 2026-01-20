@@ -11,6 +11,15 @@
 #include "ahrs.h"
 #include "pid.h"
 
+// TODO: Add threads that join at the end of each loop.
+// For example:
+// read_imu_thread.join()
+// ahrs_thread.join()
+// pid_thread.join()
+// set_motor_thread.join()
+
+// TODO: Add json config file.
+
 using namespace std;
 
 struct imu_data {
@@ -163,7 +172,12 @@ int main() {
 	ahrs_alg.settings.add_declination = false;
 
 	// Wait until ESCs are initialized.
-	// sleep(5);
+	sleep(5);
+
+	front_left_motor.set_speed(1);
+	front_right_motor.set_speed(1);
+	back_left_motor.set_speed(1);
+	back_right_motor.set_speed(1);
 
 	while (true) {
 		// Read from IMU.
@@ -174,14 +188,14 @@ int main() {
 		// Get orientation.
 		output_struct ahrs_output = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
 
-		// cout << ahrs_output.orientation.euler.x << ", " << ahrs_output.orientation.euler.y << ", " << ahrs_output.orientation.euler.z << endl;
+		cout << ahrs_output.orientation.euler.x << ", " << ahrs_output.orientation.euler.y << ", " << ahrs_output.orientation.euler.z << endl;
 
 		// Update PID controlers (curently set to maintain orientation).
 		double pid_x_output = pid_x.loop(ahrs_output.orientation.euler.x, set_x);
 		double pid_y_output = pid_y.loop(ahrs_output.orientation.euler.y, set_y);
 		double pid_z_output = pid_z.loop(ahrs_output.orientation.euler.z, set_z);
 
-		cout << pid_x_output << ", " << pid_y_output << ", " << pid_z_output << endl;
+		// cout << pid_x_output << ", " << pid_y_output << ", " << pid_z_output << endl;
 
 		// Set motor speeds.
 		/*
