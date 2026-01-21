@@ -5,8 +5,11 @@
 #include <unistd.h>
 #include <chrono>
 #include <cmath>
+/*
 #include <LSM9DS1_Types.h>
 #include "LSM9DS1.h"
+*/
+#include "lsm9ds1.h"
 #include "motor.h"
 #include "ahrs.h"
 #include "pid.h"
@@ -22,6 +25,7 @@
 
 using namespace std;
 
+/*
 struct imu_data {
 	vector_struct gyro = {0, 0, 0};
 	vector_struct accel = {0, 0, 0};
@@ -29,8 +33,10 @@ struct imu_data {
 };
 
 LSM9DS1 imu(IMU_MODE_I2C, 0x6b, 0x1e);
+*/
+lsm9ds1 imu(0x6b, 0x1e, 1);
 
-double dt = 0.013; // Deltatime in seconds.
+double dt = 0.003; // Deltatime in seconds.
 
 double throttle = 30; 
 double set_x = 0, set_y = 0, set_z = 0; // The angles the flight controler will try to stay at.
@@ -54,6 +60,7 @@ double clamp(double value, double min, double max) {
 	}
 }
 
+/*
 // Initialize LSM9DS1.
 void imu_init(int accel_scale = 2, int gyro_scale = 245, int mag_scale = 4) { // Set default settings for LSM9DS1.
 	// Set settings
@@ -89,15 +96,23 @@ imu_data read_imu() {
 	data.accel.y = imu.calcAccel(imu.ay);
 	data.accel.z = imu.calcAccel(imu.az);
 
+	cout << imu.ax << endl;
+
 	data.mag.x = imu.calcMag(imu.mx);
 	data.mag.y = imu.calcMag(imu.my);
 	data.mag.z = imu.calcMag(imu.mz);
 
 	return data;
 }
+*/
+
+void imu_init() {
+
+
+}
 
 vector_struct gyro_calibrate() {
-	return read_imu().gyro;
+	return imu.read().gyro;
 }
 
 // Prints LSM9DS1 readings to stout.
@@ -108,14 +123,14 @@ void test_imu(bool loop=false) { // If loop = true then this function will loop 
 
 	if (loop) {
 		while (1) {
-			data = read_imu();
+			data = imu.read();
 
 			cout << "Gyro: " << to_string(data.gyro.x) + "," + to_string(data.gyro.y) + "," + to_string(data.gyro.z) << ", Accel: " << to_string(data.accel.x) + "," + to_string(data.accel.y) + "," + to_string(data.accel.z) << ", Mag: " << to_string(data.mag.x) + "," + to_string(data.mag.y) + "," + to_string(data.mag.z) << endl;
 		
 			usleep(100000);
 		}
 	} else {
-		data = read_imu();
+		data = imu.read();
 
 			cout << "Gyro: " << to_string(data.gyro.x) + "," + to_string(data.gyro.y) + "," + to_string(data.gyro.z) << ", Accel: " << to_string(data.accel.x) + "," + to_string(data.accel.y) + "," + to_string(data.accel.z) << ", Mag: " << to_string(data.mag.x) + "," + to_string(data.mag.y) + "," + to_string(data.mag.z) << endl;
 
@@ -127,6 +142,16 @@ int main() {
 	// Initialize GPIO.
 	if (gpioInitialise() < 0)
 		exit(-1);
+
+	// Set IMU Settings
+	imu_settings imu_settings;
+
+	imu_settings.gyro_scale = 500;
+	imu_settings.accel_scale = 4;
+
+	imu_settings.data_rate = 476;
+
+	imu.init();
 
 	// Construct motors.
 	motor front_left_motor(12, 1300, 1520);
@@ -143,8 +168,6 @@ int main() {
 	pid_controller pid_x(dt, 1, 0, 0);
 	pid_controller pid_y(dt, 1, 0, 0);
 	pid_controller pid_z(dt, 0.1, 0, 0);
-
-	imu_init();
 
 	// Set ahrs settings.
 	ahrs ahrs_alg;
@@ -165,14 +188,14 @@ int main() {
 
 	ahrs_alg.settings.accel_rejection_t = 0.5;
 
-	ahrs_alg.settings.gain_normal = 5.0;
-	ahrs_alg.settings.gain_init = 15.0;
+	ahrs_alg.settings.gain_normal = 10.0;
+	ahrs_alg.settings.gain_init = 20.0;
 
 	ahrs_alg.settings.declination = 133.3;
 	ahrs_alg.settings.add_declination = false;
 
 	// Wait until ESCs are initialized.
-	sleep(5);
+	// sleep(5);
 
 	front_left_motor.set_speed(1);
 	front_right_motor.set_speed(1);
@@ -180,8 +203,10 @@ int main() {
 	back_right_motor.set_speed(1);
 
 	while (true) {
+		// double timestamp = ahrs_alg.get_timestamp();
+
 		// Read from IMU.
-		imu_data imu_readings = read_imu();
+		imu_data imu_readings = imu.read();
 
 		// cout << imu_readings.accel.x << ", " << imu_readings.accel.y << ", " << imu_readings.accel.z << endl; 
 
@@ -198,14 +223,16 @@ int main() {
 		// cout << pid_x_output << ", " << pid_y_output << ", " << pid_z_output << endl;
 
 		// Set motor speeds.
-		/*
+		// /*
 		front_left_motor.set_speed(clamp(throttle + pid_x_output + pid_y_output - pid_z_output, 5, 100));
 		front_right_motor.set_speed(clamp(throttle - pid_x_output + pid_y_output + pid_z_output, 5, 100));
 		back_left_motor.set_speed(clamp(throttle + pid_x_output - pid_y_output + pid_z_output, 5, 100));
 		back_right_motor.set_speed(clamp(throttle - pid_x_output - pid_y_output - pid_z_output, 5, 100));
-		*/
-		
+		// */
+
 		// cout << clamp(throttle + pid_x_output - pid_y_output + pid_z_output, 0, 100) << endl;
+
+		// cout << ahrs_alg.get_timestamp() - timestamp << endl;
 	}
 }
 
