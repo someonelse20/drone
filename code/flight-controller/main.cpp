@@ -36,7 +36,7 @@ LSM9DS1 imu(IMU_MODE_I2C, 0x6b, 0x1e);
 */
 lsm9ds1 imu(0x6b, 0x1e, 1);
 
-double dt = 0.003; // Deltatime in seconds.
+double dt = 0.005; // Deltatime in seconds.
 
 double throttle = 30; 
 double set_x = 0, set_y = 0, set_z = 0; // The angles the flight controler will try to stay at.
@@ -149,7 +149,8 @@ int main() {
 	imu_settings.gyro_scale = 500;
 	imu_settings.accel_scale = 4;
 
-	imu_settings.data_rate = 476;
+	// imu_settings.data_rate = 476;
+	imu_settings.data_rate = 952;
 
 	imu.init();
 
@@ -203,17 +204,18 @@ int main() {
 	back_right_motor.set_speed(1);
 
 	while (true) {
-		// double timestamp = ahrs_alg.get_timestamp();
+		double timestamp = ahrs_alg.get_timestamp();
 
 		// Read from IMU.
 		imu_data imu_readings = imu.read();
 
 		// cout << imu_readings.accel.x << ", " << imu_readings.accel.y << ", " << imu_readings.accel.z << endl; 
 
+		// cout << (ahrs_alg.get_timestamp() - timestamp) * 1000 << endl;
+
 		// Get orientation.
 		output_struct ahrs_output = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);
-
-		cout << ahrs_output.orientation.euler.x << ", " << ahrs_output.orientation.euler.y << ", " << ahrs_output.orientation.euler.z << endl;
+		// cout << ahrs_output.orientation.euler.x << ", " << ahrs_output.orientation.euler.y << ", " << ahrs_output.orientation.euler.z << endl;
 
 		// Update PID controlers (curently set to maintain orientation).
 		double pid_x_output = pid_x.loop(ahrs_output.orientation.euler.x, set_x);
@@ -230,9 +232,15 @@ int main() {
 		back_right_motor.set_speed(clamp(throttle - pid_x_output - pid_y_output - pid_z_output, 5, 100));
 		// */
 
+
 		// cout << clamp(throttle + pid_x_output - pid_y_output + pid_z_output, 0, 100) << endl;
 
-		// cout << ahrs_alg.get_timestamp() - timestamp << endl;
+		// Make dt constant.
+		double time_elapsed = ahrs_alg.get_timestamp() - timestamp;
+
+		// cout << time_elapsed * 1000 << endl;
+
+		usleep(clamp((dt - time_elapsed) * 1000, 0, 5000));
 	}
 }
 

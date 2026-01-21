@@ -6,7 +6,14 @@
 #include "lsm9ds1_reg.h"
 #include "lsm9ds1.h"
 
+#include <chrono>
+
 using namespace std;
+
+inline double get_timestamp() {
+  using namespace std::chrono;
+  return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() / 1000.0;
+}
 
 lsm9ds1::lsm9ds1(int addr, int mag_addr, int bus) {
 	ADDR = addr;
@@ -143,6 +150,8 @@ void lsm9ds1::init() {
 }
 
 imu_data lsm9ds1::read() {
+	double timestamp = get_timestamp();
+
 	string data_ready = bitset<8>(i2cReadByteData(handle, STATUS_REG_0)).to_string();
 	string mag_data_ready = bitset<8>(i2cReadByteData(m_handle, STATUS_REG_M)).to_string();
 
@@ -178,6 +187,8 @@ imu_data lsm9ds1::read() {
 		data.mag.y = mag[1] * sensitivity;
 		data.mag.z = mag[2] * sensitivity;
 	}
+
+	// cout << (get_timestamp() - timestamp) * 1 << endl;
 
 	return data;
 }
