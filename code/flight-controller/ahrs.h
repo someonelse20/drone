@@ -143,8 +143,8 @@ public:
 	// Calculates the product of two matrices.
 	matrix_struct matrix_product(matrix_struct ma, matrix_struct mb);
 
-	// Gets time in seconds since epoch.
-	double get_timestamp();
+	// Gets time in seconds since epoch. Change the divider to 1 to get microseconds.
+	double get_timestamp(double divider = 1000000.0);
 
 	// Gets current time by subtracting time since epoch by the time the algorithm started.
 	double current_time();

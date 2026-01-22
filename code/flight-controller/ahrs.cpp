@@ -1,7 +1,6 @@
 #include <chrono>
 #include <cmath>
 #include "ahrs.h"
-#include <iostream>
 
 using namespace std;
 
@@ -174,9 +173,9 @@ matrix_struct ahrs::matrix_product(matrix_struct ma, matrix_struct mb) {
 	return return_value;
 }
 
-inline double ahrs::get_timestamp() {
-  using namespace std::chrono;
-  return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count() / 1000.0;
+inline double ahrs::get_timestamp(double divider) {
+	using namespace std::chrono;
+	return duration_cast<microseconds>(system_clock::now().time_since_epoch()).count() / divider;
 }
 
 inline double ahrs::current_time() {

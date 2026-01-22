@@ -36,7 +36,7 @@ LSM9DS1 imu(IMU_MODE_I2C, 0x6b, 0x1e);
 */
 lsm9ds1 imu(0x6b, 0x1e, 1);
 
-double dt = 0.005; // Deltatime in seconds.
+double dt = 0.002; // Deltatime in seconds.
 
 double throttle = 30; 
 double set_x = 0, set_y = 0, set_z = 0; // The angles the flight controler will try to stay at.
@@ -204,7 +204,7 @@ int main() {
 	back_right_motor.set_speed(1);
 
 	while (true) {
-		double timestamp = ahrs_alg.get_timestamp();
+		double timestamp = ahrs_alg.get_timestamp(1);
 
 		// Read from IMU.
 		imu_data imu_readings = imu.read();
@@ -236,11 +236,11 @@ int main() {
 		// cout << clamp(throttle + pid_x_output - pid_y_output + pid_z_output, 0, 100) << endl;
 
 		// Make dt constant.
-		double time_elapsed = ahrs_alg.get_timestamp() - timestamp;
+		double time_elapsed = ahrs_alg.get_timestamp(1) - timestamp;
 
-		// cout << time_elapsed * 1000 << endl;
+		// cout << dt * 1000000 - time_elapsed << endl;
 
-		usleep(clamp((dt - time_elapsed) * 1000, 0, 5000));
+		usleep(clamp(dt - time_elapsed, 0, dt * 1000000));
 	}
 }
 
