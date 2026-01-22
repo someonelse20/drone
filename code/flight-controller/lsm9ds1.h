@@ -11,9 +11,9 @@ struct imu_data {
 };
 
 struct imu_settings {
-	int accel_scale = 2; // g
 	int gyro_scale = 250; // dps
-	int mag_scale = 4; // 
+	int accel_scale = 2; // g
+	int mag_scale = 4; // gauss
 
 	int data_rate = 6; // 0 - 6
 	int mag_data_rate = 7; // 0 - 7

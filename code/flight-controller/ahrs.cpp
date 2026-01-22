@@ -1,5 +1,6 @@
 #include <chrono>
 #include <cmath>
+
 #include "ahrs.h"
 
 using namespace std;

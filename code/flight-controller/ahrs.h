@@ -42,12 +42,12 @@ struct calibrate {
 };
 
 struct settings_struct{
-	double gain_normal=0.5;
-	double gain_init=10.0;
-	double init_time=3.0; // Time the algorithm is initializing in seconds.
+	double gain_normal = 0.5;
+	double gain_init = 10.0;
+	double init_time = 3.0; // Time the algorithm is initializing in seconds.
 	
-	double min_mag_distortion=0.22;
-	double max_mag_distoriton=0.67;
+	double min_mag_distortion = 0.22;
+	double max_mag_distoriton = 0.67;
 	double declination = 15.2;
 	bool add_declination = true;
 

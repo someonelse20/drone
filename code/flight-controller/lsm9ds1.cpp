@@ -1,12 +1,12 @@
+#include <sys/types.h>
 #include <iostream>
 #include <pigpio.h>
 #include <string>
 #include <bitset>
-#include <sys/types.h>
+#include <chrono>
+
 #include "lsm9ds1_reg.h"
 #include "lsm9ds1.h"
-
-#include <chrono>
 
 using namespace std;
 

@@ -1,14 +1,13 @@
-#include <cstdlib>
+#include <nlohmann/json.hpp>
 #include <iostream>
 #include <pigpio.h>
-#include <string>
 #include <unistd.h>
+#include <fstream>
+#include <cstdlib>
+#include <string>
 #include <chrono>
 #include <cmath>
-/*
-#include <LSM9DS1_Types.h>
-#include "LSM9DS1.h"
-*/
+
 #include "lsm9ds1.h"
 #include "motor.h"
 #include "ahrs.h"
@@ -23,29 +22,29 @@
 
 // TODO: Add json config file.
 
+using json = nlohmann::json;
 using namespace std;
-
-/*
-struct imu_data {
-	vector_struct gyro = {0, 0, 0};
-	vector_struct accel = {0, 0, 0};
-	vector_struct mag = {0, 0, 0};
-};
-
-LSM9DS1 imu(IMU_MODE_I2C, 0x6b, 0x1e);
-*/
-lsm9ds1 imu(0x6b, 0x1e, 1);
 
 double dt = 0.0015; // Deltatime in seconds.
 
 double throttle = 30; 
 double set_x = 0, set_y = 0, set_z = 0; // The angles the flight controler will try to stay at.
 
-// Gets time in miliseconds since epoch.
-double get_timestamp() {
-  using namespace std::chrono;
-  return duration_cast<milliseconds>(system_clock::now().time_since_epoch()).count();
-}
+lsm9ds1 imu(0x6b, 0x1e, 1);
+
+// Construct motors.
+motor front_left_motor(12, 1300, 1520);
+motor front_right_motor(13, 1145, 1510);
+motor back_left_motor(20, 1145, 1515);
+motor back_right_motor(21, 1290, 1530);
+
+// Construct PID.
+pid_controller pid_x(dt, 1, 0, 0);
+pid_controller pid_y(dt, 1, 0, 0);
+pid_controller pid_z(dt, 0.1, 0, 0);
+
+// Construct ahrs.
+ahrs ahrs_alg;
 
 // Clamp a value between two values.
 double clamp(double value, double min, double max) {
@@ -60,55 +59,16 @@ double clamp(double value, double min, double max) {
 	}
 }
 
-/*
-// Initialize LSM9DS1.
-void imu_init(int accel_scale = 2, int gyro_scale = 245, int mag_scale = 4) { // Set default settings for LSM9DS1.
-	// Set settings
-	imu.settings.gyro.scale = gyro_scale;
-	imu.settings.accel.scale = accel_scale;
-	imu.settings.mag.scale = mag_scale;
-
-	imu.begin();
-	if (!imu.begin()) {
-		cout << "Failed to communitate to LSM9DS1." << endl;
-		exit(EXIT_FAILURE);
-	}
-};
-
-// Read data from LSM9DS1 and output the gyro, accel, and mag data in a struct.
-imu_data read_imu() {
-	imu_data data;
-
-	while (!imu.gyroAvailable()) ;
-	imu.readGyro();
-
-	while (!imu.accelAvailable()) ;
-	imu.readAccel();
-
-	while (!imu.magAvailable()) ;
-	imu.readMag();
-
-	data.gyro.x = imu.calcGyro(imu.gx);
-	data.gyro.y = imu.calcGyro(imu.gy);
-	data.gyro.z = imu.calcGyro(imu.gz);
-
-	data.accel.x = imu.calcAccel(imu.ax);
-	data.accel.y = imu.calcAccel(imu.ay);
-	data.accel.z = imu.calcAccel(imu.az);
-
-	cout << imu.ax << endl;
-
-	data.mag.x = imu.calcMag(imu.mx);
-	data.mag.y = imu.calcMag(imu.my);
-	data.mag.z = imu.calcMag(imu.mz);
-
-	return data;
+// Converts json list to vector_struct.
+vector_struct json_to_vector(json value) {
+	return {value[0], value[1], value[2]};
 }
-*/
 
-void imu_init() {
-
-
+// Converts json list to matrix_struct.
+matrix_struct json_to_matrix(json value) {
+	return {{value[0][0], value[0][1], value[0][2]},
+            {value[1][0], value[1][1], value[1][2]},
+            {value[2][0], value[2][1], value[2][2]}};
 }
 
 vector_struct gyro_calibrate() {
@@ -117,7 +77,7 @@ vector_struct gyro_calibrate() {
 
 // Prints LSM9DS1 readings to stout.
 void test_imu(bool loop=false) { // If loop = true then this function will loop while true. loop = false to disable (default).
-	imu_init();
+	imu.init();
 
 	imu_data data;
 
@@ -138,11 +98,93 @@ void test_imu(bool loop=false) { // If loop = true then this function will loop 
 	}
 }
 
+void set_settings() {
+	fstream file;
+
+	file.open("../config.json");
+
+	json config = json::parse(file);
+
+	// AHRS settings.
+	ahrs_alg.settings.gain_normal = config["ahrs"]["gain_normal"];
+	ahrs_alg.settings.gain_init = config["ahrs"]["gain_init"];
+	ahrs_alg.settings.init_time = config["ahrs"]["init_time"];
+
+	ahrs_alg.settings.min_mag_distortion = config["ahrs"]["min_mag_distortion"];
+	ahrs_alg.settings.max_mag_distoriton = config["ahrs"]["max_mag_distoriton"];
+	ahrs_alg.settings.declination = config["ahrs"]["declination"];
+	ahrs_alg.settings.add_declination = config["ahrs"]["add_declination"];
+
+	ahrs_alg.settings.accel_rejection = config["ahrs"]["accel_rejection"];
+	ahrs_alg.settings.accel_rejection_t = config["ahrs"]["accel_rejection_t"];
+
+	ahrs_alg.settings.gyro_calibrate.sensitivity = json_to_vector(config["ahrs"]["gyro_calibrate"]["sensitivity"]);
+
+	ahrs_alg.settings.accel_calibrate.bias = json_to_vector(config["ahrs"]["accel_calibrate"]["bias"]);
+	ahrs_alg.settings.accel_calibrate.sensitivity = json_to_vector(config["ahrs"]["accel_calibrate"]["sensitivity"]);
+
+	ahrs_alg.settings.mag_calibrate.hard_iorn = json_to_vector(config["ahrs"]["mag_calibrate"]["hard_iorn"]);
+	ahrs_alg.settings.mag_calibrate.soft_iorn = json_to_matrix(config["ahrs"]["mag_calibrate"]["soft_iorn"]);
+	ahrs_alg.settings.mag_calibrate.rotation_matrix = json_to_matrix(config["ahrs"]["mag_calibrate"]["rotation_matrix"]);
+
+	// IMU settings.
+	imu.settings.gyro_scale = config["imu"]["gyro_scale"];
+	imu.settings.accel_scale = config["imu"]["accel_scale"];
+	imu.settings.mag_scale = config["imu"]["mag_scale"];
+
+	imu.settings.data_rate = config["imu"]["data_rate"];
+	imu.settings.mag_data_rate = config["imu"]["mag_data_rate"];
+
+	imu.settings.mag_mode = config["imu"]["mag_mode"];
+	imu.settings.mag_temp_comp = config["imu"]["mag_temp_comp"];
+
+	// Motor settings.
+	front_left_motor.GPIO = config["motors"]["front_left"]["pin"];
+	front_left_motor.min_speed = config["motors"]["front_left"]["min"];
+	front_left_motor.max_speed = config["motors"]["front_left"]["max"];
+
+	front_right_motor.GPIO = config["motors"]["front_right"]["pin"];
+	front_right_motor.min_speed = config["motors"]["front_right"]["min"];
+	front_right_motor.max_speed = config["motors"]["front_right"]["max"];
+
+	back_left_motor.GPIO = config["motors"]["back_left"]["pin"];
+	back_left_motor.min_speed = config["motors"]["back_left"]["min"];
+	back_left_motor.max_speed = config["motors"]["back_left"]["max"];
+
+	back_right_motor.GPIO = config["motors"]["back_right"]["pin"];
+	back_right_motor.min_speed = config["motors"]["back_right"]["min"];
+	back_right_motor.max_speed = config["motors"]["back_right"]["max"];
+
+	// PID settings.
+	pid_x.kP = config["pid"]["x"]["kP"];
+	pid_x.kI = config["pid"]["x"]["kI"];
+	pid_x.kD = config["pid"]["x"]["kD"];
+	pid_x.gain = config["pid"]["x"]["gain"];
+
+	pid_y.kP = config["pid"]["y"]["kP"];
+	pid_y.kI = config["pid"]["y"]["kI"];
+	pid_y.kD = config["pid"]["y"]["kD"];
+	pid_y.gain = config["pid"]["y"]["gain"];
+
+	pid_z.kP = config["pid"]["z"]["kP"];
+	pid_z.kI = config["pid"]["z"]["kI"];
+	pid_z.kD = config["pid"]["z"]["kD"];
+	pid_z.gain = config["pid"]["z"]["gain"];
+}
+
 int main() {
 	// Initialize GPIO.
 	if (gpioInitialise() < 0)
 		exit(-1);
 
+	front_left_motor.stop();
+	front_right_motor.stop();
+	back_left_motor.stop();
+	back_right_motor.stop();
+
+	set_settings();
+
+	/*
 	// Set IMU Settings
 	imu_settings imu_settings;
 
@@ -150,27 +192,6 @@ int main() {
 	imu_settings.accel_scale = 4;
 
 	// imu_settings.data_rate = 6;
-
-	imu.init();
-
-	// Construct motors.
-	motor front_left_motor(12, 1300, 1520);
-	motor front_right_motor(13, 1145, 1510);
-	motor back_left_motor(20, 1145, 1515);
-	motor back_right_motor(21, 1290, 1530);
-
-	front_left_motor.stop();
-	front_right_motor.stop();
-	back_left_motor.stop();
-	back_right_motor.stop();
-
-	// Construct PID.
-	pid_controller pid_x(dt, 1, 0, 0);
-	pid_controller pid_y(dt, 1, 0, 0);
-	pid_controller pid_z(dt, 0.1, 0, 0);
-
-	// Set ahrs settings.
-	ahrs ahrs_alg;
 
 	ahrs_alg.settings.gyro_calibrate.bias = ahrs_alg.gyro_bias_calibration(1, &gyro_calibrate); //{2.93716433, 0.08483891, 0.71578982};
 	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.8409687, 0.87876116, 0.87530723};
@@ -193,9 +214,16 @@ int main() {
 
 	ahrs_alg.settings.declination = 133.3;
 	ahrs_alg.settings.add_declination = false;
+	*/
+
+	imu.init();
 
 	// Wait until ESCs are initialized.
 	// sleep(5);
+	sleep(1);
+
+	// Calibrate gyro bias.
+	ahrs_alg.settings.gyro_calibrate.bias = ahrs_alg.gyro_bias_calibration(1, &gyro_calibrate);
 
 	front_left_motor.set_speed(1);
 	front_right_motor.set_speed(1);
@@ -209,8 +237,6 @@ int main() {
 		imu_data imu_readings = imu.read();
 
 		// cout << imu_readings.accel.x << ", " << imu_readings.accel.y << ", " << imu_readings.accel.z << endl; 
-
-		// cout << (ahrs_alg.get_timestamp() - timestamp) * 1000 << endl;
 
 		// Get orientation.
 		output_struct ahrs_output = ahrs_alg.update(imu_readings.gyro, imu_readings.accel, imu_readings.mag, dt);

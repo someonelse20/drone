@@ -1,6 +1,8 @@
 import numpy as np
 from numpy import linalg as la
 
+import json
+
 x = 0 
 y = 1 
 z = 2
@@ -113,4 +115,13 @@ print(alignment)
 #test_calibration(bias, sensitivity, alignment)
 #print_calibrated_output(data_average("x+"), bias, sensitivity, np.identity(3))
 #print_calibrated_output(data_average("x+"), bias, sensitivity, normed_alignment)
+
+data = None
+with open('../config.json', mode="r") as json_file:
+    data = json.loads(json_file.read())
+    data['ahrs']['accel_calibrate']['bias'] = bias.tolist()
+    data['ahrs']['accel_calibrate']['sensitivity'] = sensitivity.tolist()
+
+with open('../config.json', mode="w") as json_file:
+    s = json.dump(data, json_file, indent=4)
 

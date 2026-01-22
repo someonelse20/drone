@@ -1,9 +1,13 @@
-#include <pigpio.h>
-#include <cmath>
-#include <cstdlib>
+#include <nlohmann/json.hpp>
 #include <iostream>
+#include <pigpio.h>
+#include <fstream>
+#include <cstdlib>
+#include <cmath>
+
 #include "motor.h"
 
+using json = nlohmann::json;
 using namespace std;
 
 int front_left = 16;
@@ -70,7 +74,33 @@ void motor::calibrate() {
 	stop();
 
 	cout << "min: " << min_speed << " max: " << max_speed << endl;
-	cout << "min and max speed temperaraly set, you should make it permanent" << endl;
+
+	write_config();
+	// cout << "min and max speed temperaraly set, you should make it permanent" << endl;
+}
+
+void motor::write_config() {
+	fstream config_read;
+
+	config_read.open("../config.json");
+
+	json config = json::parse(config_read);
+
+	config_read.close();
+
+	for (auto& item : config["motors"]) {
+		if (item["pin"] == GPIO) {
+			fstream config_write;
+
+			config_write.open("../config.json");
+
+			item["min"] = min_speed;
+			item["max"] = max_speed;
+
+			config_write << config;
+			config_write.close();
+		}
+	}
 }
 
 /*

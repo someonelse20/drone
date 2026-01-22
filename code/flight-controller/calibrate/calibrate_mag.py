@@ -1,6 +1,8 @@
 import numpy as np
 from numpy import linalg as la
 
+import json
+
 x = 0 
 y = 1 
 z = 2
@@ -179,4 +181,15 @@ offset = offset_calibration()
 
 #callibrate = alignment_calibration(["gx+", "gy+", "gz+"])
 #print(callibrate)
+
+soft, hard = alignment_calibration(["mx+", "my+", "mz+"], ["m1", "m2", "mx+", "mx-", "my+", "my-", "mz+", "mz-"])
+
+data = None
+with open('../config.json', mode="r") as json_file:
+    data = json.loads(json_file.read())
+    data['ahrs']['mag_calibrate']['soft_iorn'] = soft.tolist()
+    data['ahrs']['mag_calibrate']['hard_iorn'] = hard.tolist()
+
+with open('../config.json', mode="w") as json_file:
+    s = json.dump(data, json_file, indent=4)
 
