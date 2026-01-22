@@ -71,6 +71,12 @@ void lsm9ds1::init() {
 		mag_scale = 0;
 	}
 
+	if (settings.data_rate < 0 || settings.data_rate > 6) {
+		cout << "Incorrect data rate: " << settings.data_rate << ", defaulting to 952hz" << endl;
+		settings.data_rate = 6;
+	}
+
+	/*
 	if (settings.data_rate == 14.9) {
 		data_rate = 1;
 	} else if (settings.data_rate == 59.5) {
@@ -87,7 +93,14 @@ void lsm9ds1::init() {
 		cout << "Incorrect data rate: " << settings.data_rate << ", defaulting to 952" << endl;
 		data_rate = 6;
 	}
+	*/
 
+	if (settings.mag_data_rate < 0 || settings.mag_data_rate > 7) {
+		cout << "Incorrect mag data rate: " << settings.mag_data_rate << ", defaulting to 80hz" << endl;
+		mag_data_rate = 7;
+	}
+
+	/*
 	if (settings.mag_data_rate == 0.625) {
 		mag_data_rate = 0;
 	} else if (settings.mag_data_rate == 1.25) {
@@ -108,6 +121,7 @@ void lsm9ds1::init() {
 		cout << "Incorrect mag data rate: " << settings.mag_data_rate << ", defaulting to 80" << endl;
 		mag_data_rate = 7;
 	}
+	*/
 
 	// Construct binary string.
 	string gyro_settings;

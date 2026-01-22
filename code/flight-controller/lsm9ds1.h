@@ -15,8 +15,8 @@ struct imu_settings {
 	int gyro_scale = 250; // dps
 	int mag_scale = 4; // 
 
-	int data_rate = 952; // hz
-	int mag_data_rate = 80; // hz
+	int data_rate = 6; // 0 - 6
+	int mag_data_rate = 7; // 0 - 7
 
 	int mag_mode = 3; // 0 = low power, 1 = med performance, 2 = high performance, 3 = ultra performance
 	bool mag_temp_comp = 0; // Magnetometer temperature compensation enable.
