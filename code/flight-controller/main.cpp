@@ -76,7 +76,7 @@ vector_struct gyro_calibrate() {
 }
 
 // Prints LSM9DS1 readings to stout.
-void test_imu(bool loop=false) { // If loop = true then this function will loop while true. loop = false to disable (default).
+void test_imu(bool loop=true) { // If loop = true then this function will loop while true. loop = false to disable (default).
 	imu.init();
 
 	imu_data data;
@@ -229,6 +229,8 @@ int main() {
 	front_right_motor.set_speed(1);
 	back_left_motor.set_speed(1);
 	back_right_motor.set_speed(1);
+
+	test_imu(true);
 
 	while (true) {
 		double timestamp = ahrs_alg.get_timestamp(1);

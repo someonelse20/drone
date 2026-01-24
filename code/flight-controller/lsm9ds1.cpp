@@ -154,6 +154,8 @@ void lsm9ds1::init() {
 	mag_settings_2 += "00000";
 	mag_settings_3 += "00";
 
+	cout << gyro_settings << endl;
+
 	// Set settings.
 	i2cWriteByteData(handle, CTRL_REG1_G, (int)stoi(gyro_settings, nullptr, 2));
 	i2cWriteByteData(handle, CTRL_REG6_XL, (int)stoi(accel_settings, nullptr, 2));
