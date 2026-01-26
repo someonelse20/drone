@@ -90,14 +90,14 @@ void motor::write_config() {
 
 	for (auto& item : config["motors"]) {
 		if (item["pin"] == GPIO) {
-			fstream config_write;
-
-			config_write.open("../config.json");
+			ofstream config_write;
+			config_write.open("../config.json", ofstream::out | ofstream::trunc);
 
 			item["min"] = min_speed;
 			item["max"] = max_speed;
 
 			config_write << config;
+
 			config_write.close();
 		}
 	}

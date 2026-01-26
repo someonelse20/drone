@@ -1,3 +1,4 @@
+#include <cstdio>
 #include <nlohmann/json.hpp>
 #include <iostream>
 #include <pigpio.h>
@@ -5,7 +6,6 @@
 #include <fstream>
 #include <cstdlib>
 #include <string>
-#include <chrono>
 #include <cmath>
 
 #include "lsm9ds1.h"
@@ -20,15 +20,15 @@
 // pid_thread.join()
 // set_motor_thread.join()
 
-// TODO: Add json config file.
-
 using json = nlohmann::json;
 using namespace std;
 
 double dt = 0.0015; // Deltatime in seconds.
 
-double throttle = 30; 
+double throttle = 15; 
 double set_x = 0, set_y = 0, set_z = 0; // The angles the flight controler will try to stay at.
+
+int flight_id;
 
 lsm9ds1 imu(0x6b, 0x1e, 1);
 
@@ -105,6 +105,8 @@ void set_settings() {
 
 	json config = json::parse(file);
 
+	file.close();
+
 	// AHRS settings.
 	ahrs_alg.settings.gain_normal = config["ahrs"]["gain_normal"];
 	ahrs_alg.settings.gain_init = config["ahrs"]["gain_init"];
@@ -170,7 +172,24 @@ void set_settings() {
 	pid_z.kI = config["pid"]["z"]["kI"];
 	pid_z.kD = config["pid"]["z"]["kD"];
 	pid_z.gain = config["pid"]["z"]["gain"];
+
+	// Set flight id.
+	flight_id = config["flight_id"];
+	flight_id++;
+	config["flight_id"] = flight_id;
+
+	// Write new flight id.
+	// /*
+	ofstream write_file;
+	write_file.open("../config.json", ofstream::out | ofstream::trunc);
+
+	write_file << config;
+
+	write_file.close();
+	// */
 }
+
+
 
 int main() {
 	// Initialize GPIO.
@@ -219,18 +238,34 @@ int main() {
 	imu.init();
 
 	// Wait until ESCs are initialized.
-	// sleep(5);
-	sleep(1);
+	sleep(5);
+	// usleep(1000);
 
 	// Calibrate gyro bias.
 	ahrs_alg.settings.gyro_calibrate.bias = ahrs_alg.gyro_bias_calibration(1, &gyro_calibrate);
 
-	front_left_motor.set_speed(1);
-	front_right_motor.set_speed(1);
-	back_left_motor.set_speed(1);
-	back_right_motor.set_speed(1);
+	/*
+	front_left_motor.set_speed(5);
+	front_right_motor.set_speed(5);
+	back_left_motor.set_speed(5);
+	back_right_motor.set_speed(5);
+	*/
+	front_left_motor.set_speed(10);
+	front_right_motor.set_speed(10);
+	back_left_motor.set_speed(10);
+	back_right_motor.set_speed(10);
 
-	test_imu(true);
+	// Create log file.
+	// ofstream log("../flight_logs/foobar.csv");
+	ofstream log("../flight_logs/bench_tests/flight-log_" + to_string(flight_id) + ".csv");
+	log << "pid_x,pid_y,pid_z";
+	log << ",front_left_speed,front_right_speed,back_left_speed,back_right_speed";
+	log << ",orientation_x,orientation_y,orientation_z";
+	log << ",acceleration_x,acceleration_y,acceleration_z";
+	log << ",accel_rejected,mag_rejected";
+	log << ",gyro_x,gyro_y,gyro_z";
+	log << ",accel_x,accel_y,accel_z";
+	log << ",mag_x,mag_y,mag_z" << endl;
 
 	while (true) {
 		double timestamp = ahrs_alg.get_timestamp(1);
@@ -247,28 +282,62 @@ int main() {
 
 		// Update PID controlers (curently set to maintain orientation).
 		double pid_x_output = pid_x.loop(ahrs_output.orientation.euler.x, set_x);
-		double pid_y_output = pid_y.loop(ahrs_output.orientation.euler.y, set_y);
-		double pid_z_output = pid_z.loop(ahrs_output.orientation.euler.z, set_z);
+		// double pid_y_output = pid_y.loop(ahrs_output.orientation.euler.y, set_y);
+		// double pid_z_output = pid_z.loop(ahrs_output.orientation.euler.z, set_z);
+		double pid_y_output = 0, pid_z_output = 0;
+		// double pid_z_output = 0;
 
 		// cout << pid_x_output << ", " << pid_y_output << ", " << pid_z_output << endl;
 
+		cout << pid_x_output<< ",";
+		cout << ahrs_output.orientation.euler.x << ",";
+
 		// Set motor speeds.
-		// /*
+		/*
 		front_left_motor.set_speed(clamp(throttle + pid_x_output + pid_y_output - pid_z_output, 5, 100));
 		front_right_motor.set_speed(clamp(throttle - pid_x_output + pid_y_output + pid_z_output, 5, 100));
 		back_left_motor.set_speed(clamp(throttle + pid_x_output - pid_y_output + pid_z_output, 5, 100));
 		back_right_motor.set_speed(clamp(throttle - pid_x_output - pid_y_output - pid_z_output, 5, 100));
-		// */
+		*/
+		/*
+		front_left_motor.set_speed(clamp(throttle - pid_x_output + pid_y_output - pid_z_output, 5, 100));
+		front_right_motor.set_speed(clamp(throttle - pid_x_output - pid_y_output + pid_z_output, 5, 100));
+		back_left_motor.set_speed(clamp(throttle + pid_x_output + pid_y_output + pid_z_output, 5, 100));
+		back_right_motor.set_speed(clamp(throttle + pid_x_output - pid_y_output - pid_z_output, 5, 100));
+		*/
 
-		// cout << clamp(throttle + pid_x_output - pid_y_output + pid_z_output, 0, 100) << endl;
+		cout << clamp(throttle - pid_x_output + pid_y_output - pid_z_output, 5, 100);
+		cout << ",";
+		cout << clamp(throttle - pid_x_output - pid_y_output + pid_z_output, 5, 100);
+		cout << ",";
+		cout << clamp(throttle + pid_x_output + pid_y_output + pid_z_output, 5, 100);
+		cout << ",";
+		cout << clamp(throttle + pid_x_output - pid_y_output - pid_z_output, 5, 100) << endl;
+
+		// Write to log file.
+		log << pid_x_output << "," << pid_y_output << "," << pid_z_output;
+		log << "," << clamp(throttle - pid_x_output + pid_y_output - pid_z_output, 5, 100);
+		log << "," << clamp(throttle - pid_x_output - pid_y_output + pid_z_output, 5, 100);
+		log << "," << clamp(throttle + pid_x_output + pid_y_output + pid_z_output, 5, 100);
+		log << "," << clamp(throttle + pid_x_output - pid_y_output - pid_z_output, 5, 100);
+		log << "," << ahrs_output.orientation.euler.x << "," << ahrs_output.orientation.euler.y << "," << ahrs_output.orientation.euler.z;
+		log << "," << ahrs_output.acceleration.zero.x << "," << ahrs_output.acceleration.zero.y << "," << ahrs_output.acceleration.zero.z;
+		log << "," << ahrs_output.accel_rejected << "," << ahrs_output.mag_rejected;
+		log << "," << imu_readings.gyro.x << "," << imu_readings.gyro.y << "," << imu_readings.gyro.z; 
+		log << "," << imu_readings.accel.x << "," << imu_readings.accel.y << "," << imu_readings.accel.z; 
+		log << "," << imu_readings.mag.x << "," << imu_readings.mag.y << "," << imu_readings.mag.z << endl; 
+
+		// log.close();
 
 		// Make dt constant.
 		double time_elapsed = ahrs_alg.get_timestamp(1) - timestamp;
 
-		// cout << time_elapsed << endl;
+		// cout << time_elapsed << ",";
 		// cout << dt * 1000000 - time_elapsed << endl;
 
-		usleep(clamp(dt - time_elapsed, 0, dt * 1000000));
+		usleep(clamp(dt * 1000000 - time_elapsed, 0, dt * 1000000));
+		// cout << clamp(dt * 1000000 - time_elapsed, 0, dt * 1000000) << ",";
+		// cout << (ahrs_alg.get_timestamp(1) - timestamp) << ",";
 	}
 }
 

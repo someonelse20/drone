@@ -139,9 +139,9 @@ void lsm9ds1::init() {
 	mag_settings_1 += mag_modes[settings.mag_mode];
 	mag_settings_3  += mag_modes[settings.mag_mode];
 
-	gyro_settings = data_rates[data_rate];
-	accel_settings = data_rates[data_rate];
-	mag_settings_1 += mag_data_rates[mag_data_rate];
+	gyro_settings = data_rates[settings.data_rate];
+	accel_settings = data_rates[settings.data_rate];
+	mag_settings_1 += mag_data_rates[settings.mag_data_rate];
 
 	gyro_settings += gyro_scales[gyro_scale];
 	accel_settings += accel_scales[accel_scale];
@@ -153,8 +153,6 @@ void lsm9ds1::init() {
 	mag_settings_1 += "00";
 	mag_settings_2 += "00000";
 	mag_settings_3 += "00";
-
-	cout << gyro_settings << endl;
 
 	// Set settings.
 	i2cWriteByteData(handle, CTRL_REG1_G, (int)stoi(gyro_settings, nullptr, 2));
