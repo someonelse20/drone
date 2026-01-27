@@ -31,6 +31,7 @@ struct output_struct {
 	acceleration_struct acceleration;
 	bool accel_rejected = false;
 	bool mag_rejected = false;
+	bool initialized = false;
 };
 
 struct calibrate {

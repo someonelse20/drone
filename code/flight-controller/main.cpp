@@ -25,7 +25,7 @@ using namespace std;
 
 double dt = 0.0015; // Deltatime in seconds.
 
-double throttle = 15; 
+double throttle = 5; 
 double set_x = 0, set_y = 0, set_z = 0; // The angles the flight controler will try to stay at.
 
 int flight_id;
@@ -203,38 +203,6 @@ int main() {
 
 	set_settings();
 
-	/*
-	// Set IMU Settings
-	imu_settings imu_settings;
-
-	imu_settings.gyro_scale = 500;
-	imu_settings.accel_scale = 4;
-
-	// imu_settings.data_rate = 6;
-
-	ahrs_alg.settings.gyro_calibrate.bias = ahrs_alg.gyro_bias_calibration(1, &gyro_calibrate); //{2.93716433, 0.08483891, 0.71578982};
-	ahrs_alg.settings.gyro_calibrate.sensitivity = {0.8409687, 0.87876116, 0.87530723};
-
-	ahrs_alg.settings.accel_calibrate.bias = {-0.04030407, 0.01214501, -0.02037599};
-	ahrs_alg.settings.accel_calibrate.sensitivity = {1.0042335, 0.99896223, 0.99228542};
-
-	ahrs_alg.settings.mag_calibrate.soft_iorn = {{ 0.90782961, -0.05349811,  0.0207239 },
-                                                 {-0.11265483, -0.91579853,  0.02113201},
-                                                 { 0.06981889, -0.12123726, -0.91697565}};
-	ahrs_alg.settings.mag_calibrate.hard_iorn = {-0.00618111, -0.12120257, -0.15837325};
-	ahrs_alg.settings.mag_calibrate.rotation_matrix = {{ 0,  1,  0},
-                                                       {-1,  0,  0},
-                                                       { 0,  0,  1}};
-
-	ahrs_alg.settings.accel_rejection_t = 0.5;
-
-	ahrs_alg.settings.gain_normal = 10.0;
-	ahrs_alg.settings.gain_init = 20.0;
-
-	ahrs_alg.settings.declination = 133.3;
-	ahrs_alg.settings.add_declination = false;
-	*/
-
 	imu.init();
 
 	// Wait until ESCs are initialized.
@@ -244,16 +212,12 @@ int main() {
 	// Calibrate gyro bias.
 	ahrs_alg.settings.gyro_calibrate.bias = ahrs_alg.gyro_bias_calibration(1, &gyro_calibrate);
 
-	/*
-	front_left_motor.set_speed(5);
-	front_right_motor.set_speed(5);
-	back_left_motor.set_speed(5);
-	back_right_motor.set_speed(5);
-	*/
-	front_left_motor.set_speed(10);
-	front_right_motor.set_speed(10);
-	back_left_motor.set_speed(10);
-	back_right_motor.set_speed(10);
+	// /*
+	front_left_motor.set_speed(1);
+	front_right_motor.set_speed(1);
+	back_left_motor.set_speed(1);
+	back_right_motor.set_speed(1);
+	// */
 
 	// Create log file.
 	// ofstream log("../flight_logs/foobar.csv");
@@ -262,7 +226,7 @@ int main() {
 	log << ",front_left_speed,front_right_speed,back_left_speed,back_right_speed";
 	log << ",orientation_x,orientation_y,orientation_z";
 	log << ",acceleration_x,acceleration_y,acceleration_z";
-	log << ",accel_rejected,mag_rejected";
+	log << ",accel_rejected,mag_rejected,ahrs_initialized";
 	log << ",gyro_x,gyro_y,gyro_z";
 	log << ",accel_x,accel_y,accel_z";
 	log << ",mag_x,mag_y,mag_z" << endl;
@@ -289,7 +253,8 @@ int main() {
 
 		// cout << pid_x_output << ", " << pid_y_output << ", " << pid_z_output << endl;
 
-		cout << pid_x_output<< ",";
+		cout << ahrs_output.initialized << ",";
+		cout << pid_x_output << ",";
 		cout << ahrs_output.orientation.euler.x << ",";
 
 		// Set motor speeds.
@@ -299,30 +264,32 @@ int main() {
 		back_left_motor.set_speed(clamp(throttle + pid_x_output - pid_y_output + pid_z_output, 5, 100));
 		back_right_motor.set_speed(clamp(throttle - pid_x_output - pid_y_output - pid_z_output, 5, 100));
 		*/
-		/*
-		front_left_motor.set_speed(clamp(throttle - pid_x_output + pid_y_output - pid_z_output, 5, 100));
-		front_right_motor.set_speed(clamp(throttle - pid_x_output - pid_y_output + pid_z_output, 5, 100));
-		back_left_motor.set_speed(clamp(throttle + pid_x_output + pid_y_output + pid_z_output, 5, 100));
-		back_right_motor.set_speed(clamp(throttle + pid_x_output - pid_y_output - pid_z_output, 5, 100));
-		*/
+		// /*
+		if (ahrs_output.initialized) {
+			front_left_motor.set_speed(clamp(throttle - pid_x_output + pid_y_output - pid_z_output, 1, 100));
+			front_right_motor.set_speed(clamp(throttle - pid_x_output - pid_y_output + pid_z_output, 1, 100));
+			back_left_motor.set_speed(clamp(throttle + pid_x_output + pid_y_output + pid_z_output, 1, 100));
+			back_right_motor.set_speed(clamp(throttle + pid_x_output - pid_y_output - pid_z_output, 1, 100));
+		}
+		// */
 
-		cout << clamp(throttle - pid_x_output + pid_y_output - pid_z_output, 5, 100);
+		cout << clamp(throttle - pid_x_output + pid_y_output - pid_z_output, 1, 100);
 		cout << ",";
-		cout << clamp(throttle - pid_x_output - pid_y_output + pid_z_output, 5, 100);
+		cout << clamp(throttle - pid_x_output - pid_y_output + pid_z_output, 1, 100);
 		cout << ",";
-		cout << clamp(throttle + pid_x_output + pid_y_output + pid_z_output, 5, 100);
+		cout << clamp(throttle + pid_x_output + pid_y_output + pid_z_output, 1, 100);
 		cout << ",";
-		cout << clamp(throttle + pid_x_output - pid_y_output - pid_z_output, 5, 100) << endl;
+		cout << clamp(throttle + pid_x_output - pid_y_output - pid_z_output, 1, 100) << endl;
 
 		// Write to log file.
 		log << pid_x_output << "," << pid_y_output << "," << pid_z_output;
-		log << "," << clamp(throttle - pid_x_output + pid_y_output - pid_z_output, 5, 100);
-		log << "," << clamp(throttle - pid_x_output - pid_y_output + pid_z_output, 5, 100);
-		log << "," << clamp(throttle + pid_x_output + pid_y_output + pid_z_output, 5, 100);
-		log << "," << clamp(throttle + pid_x_output - pid_y_output - pid_z_output, 5, 100);
+		log << "," << clamp(throttle - pid_x_output + pid_y_output - pid_z_output, 1, 100);
+		log << "," << clamp(throttle - pid_x_output - pid_y_output + pid_z_output, 1, 100);
+		log << "," << clamp(throttle + pid_x_output + pid_y_output + pid_z_output, 1, 100);
+		log << "," << clamp(throttle + pid_x_output - pid_y_output - pid_z_output, 1, 100);
 		log << "," << ahrs_output.orientation.euler.x << "," << ahrs_output.orientation.euler.y << "," << ahrs_output.orientation.euler.z;
 		log << "," << ahrs_output.acceleration.zero.x << "," << ahrs_output.acceleration.zero.y << "," << ahrs_output.acceleration.zero.z;
-		log << "," << ahrs_output.accel_rejected << "," << ahrs_output.mag_rejected;
+		log << "," << ahrs_output.accel_rejected << "," << ahrs_output.mag_rejected << "," << ahrs_output.initialized;
 		log << "," << imu_readings.gyro.x << "," << imu_readings.gyro.y << "," << imu_readings.gyro.z; 
 		log << "," << imu_readings.accel.x << "," << imu_readings.accel.y << "," << imu_readings.accel.z; 
 		log << "," << imu_readings.mag.x << "," << imu_readings.mag.y << "," << imu_readings.mag.z << endl; 

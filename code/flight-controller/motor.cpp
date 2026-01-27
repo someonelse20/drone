@@ -33,6 +33,17 @@ int motor::set_speed(double speed) {
 	}
 }
 
+int motor::set_true_speed(int speed) {
+	if (speed >= 0 && speed <= 2500) {
+		gpioServo(GPIO, speed);
+		return speed;
+	}
+	else {
+		cout << "error, bad pulsewidth: " << speed << endl;
+		return -1;
+	}
+}
+
 void motor::stop() {
 	gpioServo(GPIO, 1000);
 }

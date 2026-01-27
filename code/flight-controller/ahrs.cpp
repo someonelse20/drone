@@ -284,7 +284,9 @@ output_struct ahrs::update(vector_struct gyro, vector_struct accel, vector_struc
 	}
 
 	// initialise 
-	if (current_time() < settings.init_time) 
+	return_outputs.initialized = current_time() > settings.init_time;
+
+	if (!return_outputs.initialized) 
 		gain = settings.gain_normal + (pow(settings.init_time, -current_time()) / settings.init_time) * (settings.gain_init - settings.gain_normal);
 	else
 		gain = settings.gain_normal;

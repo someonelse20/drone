@@ -10,6 +10,8 @@ public:
 	motor(int set_GPIO, int set_min_speed = 1000, int set_max_speed = 2000);
 
 	int set_speed(double speed); // Speed is a percentage of 0 (off) to 100 (fully on) between the minimum value and the maximum.
+	
+	int set_true_speed(int speed); // Raw pwm values to write to the motor.
 
 	void stop(); // Stops the motor.
 
