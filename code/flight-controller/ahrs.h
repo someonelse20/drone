@@ -1,12 +1,24 @@
 #ifndef AHRS_H
 #define AHRS_H
 
+struct quaternion_struct;
+struct vector_struct;
+
 struct quaternion_struct {
 	double w, x, y, z;
+
+	quaternion_struct operator+();
+	quaternion_struct operator*();
+
+	quaternion_struct norm();
+
+	vector_struct to_euler();
 };
 
 struct vector_struct {
 	double x, y, z;
+
+	quaternion_struct to_vector();
 };
 
 struct matrix_struct {
