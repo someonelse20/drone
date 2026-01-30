@@ -1,30 +1,56 @@
 #ifndef AHRS_H
 #define AHRS_H
 
+#include <string>
+
 struct quaternion_struct;
 struct vector_struct;
 
 struct quaternion_struct {
 	double w, x, y, z;
 
-	quaternion_struct operator+();
-	quaternion_struct operator*();
+	quaternion_struct operator+(const quaternion_struct &q);
+	quaternion_struct operator-(const quaternion_struct &q);
+	quaternion_struct operator*(const quaternion_struct &q);
+	quaternion_struct operator*(const double &s);
+	bool operator==(const quaternion_struct&q);
+	bool operator!=(const quaternion_struct&q);
 
-	quaternion_struct norm();
+	quaternion_struct conjugate();
 
+	double norm();
+	quaternion_struct normalize();
 	vector_struct to_euler();
+	std::string to_string(const std::string seperator=" ");
 };
 
 struct vector_struct {
 	double x, y, z;
 
-	quaternion_struct to_vector();
+	vector_struct operator+(const vector_struct &v);
+	vector_struct operator-(const vector_struct &v);
+	vector_struct operator*(const vector_struct &v);
+	vector_struct operator*(const double &s);
+	bool operator==(const vector_struct &v);
+	bool operator!=(const vector_struct &v);
+
+	double norm();
+	vector_struct normalize();
+	quaternion_struct to_quaternion();
+	std::string to_string(const std::string seperator=" ");
 };
 
 struct matrix_struct {
 	vector_struct x;
 	vector_struct y;
 	vector_struct z;
+
+	matrix_struct operator*(const matrix_struct &m);
+	vector_struct operator*(const vector_struct &v);
+	bool operator==(const matrix_struct &m);
+	bool operator!=(const matrix_struct &m);
+
+	std::string to_string(const std::string seperator="\n", const std::string vector_seperator=" ");
 };
 
 struct orientation_struct {

@@ -2,7 +2,7 @@
 #define LSM9DS1_H
 
 #include <string>
-#include "ahrs.h"
+#include "ahrs/ahrs.h"
 
 struct imu_data {
 	vector_struct gyro = {0, 0, 0};

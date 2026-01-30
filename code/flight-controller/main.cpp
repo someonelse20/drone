@@ -10,7 +10,7 @@
 
 #include "lsm9ds1.h"
 #include "motor.h"
-#include "ahrs.h"
+#include "ahrs/ahrs.h"
 #include "pid.h"
 
 // TODO: Add threads that join at the end of each loop.
