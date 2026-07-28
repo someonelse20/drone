@@ -25,7 +25,7 @@ using namespace std;
 
 double dt = 0.0015; // Deltatime in seconds.
 
-double throttle = 5; 
+double throttle = 10; 
 double set_x = 0, set_y = 0, set_z = 0; // The angles the flight controler will try to stay at.
 
 int flight_id;
@@ -208,7 +208,7 @@ int main() {
 	// Wait until ESCs are initialized.
 	sleep(5);
 	// usleep(1000);
-
+	
 	// Calibrate gyro bias.
 	ahrs_alg.settings.gyro_calibrate.bias = ahrs_alg.gyro_bias_calibration(1, &gyro_calibrate);
 
@@ -253,8 +253,8 @@ int main() {
 
 		// cout << pid_x_output << ", " << pid_y_output << ", " << pid_z_output << endl;
 
-		cout << ahrs_output.initialized << ",";
-		cout << pid_x_output << ",";
+		// cout << ahrs_output.initialized << ",";
+		// cout << pid_x_output << ",";
 		cout << ahrs_output.orientation.euler.x << ",";
 
 		// Set motor speeds.
